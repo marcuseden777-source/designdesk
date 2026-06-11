@@ -1,11 +1,7 @@
-import OpenAI from "openai";
 import { FloorPlanAnalysis, DesignStyle } from "../types";
 
-// Nvidia NIM API is OpenAI-compatible — same SDK, different base URL + model
-const openai = new OpenAI({
-  apiKey: process.env.NVIDIA_API_KEY,
-  baseURL: "https://integrate.api.nvidia.com/v1",
-});
+const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY!;
+const NVIDIA_FLUX_URL = "https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev";
 
 function buildDesignPrompt(
   analysis: FloorPlanAnalysis,
@@ -59,17 +55,27 @@ export async function generateDesign(
     totalSqft
   );
 
-  const response = await openai.images.generate({
-    model: "black-forest-labs/flux.1-dev",
-    prompt,
-    n: 1,
-    response_format: "b64_json",
-  } as any); // Nvidia NIM accepts extra params not in OpenAI's type defs
+  const response = await fetch(NVIDIA_FLUX_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${NVIDIA_API_KEY}`,
+    },
+    body: JSON.stringify({
+      prompt,
+      height: 1024,
+      width: 1024,
+    }),
+  });
 
-  const b64 = response.data?.[0]?.b64_json;
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Nvidia API error (${response.status}): ${err}`);
+  }
+
+  const data = (await response.json()) as { artifacts?: { base64: string }[] };
+  const b64 = data.artifacts?.[0]?.base64;
   if (!b64) throw new Error("Nvidia returned no image data");
 
-  // Return as data URI — mobile app renders this directly
-  // Replace with S3 upload once AWS credentials are configured
-  return `data:image/png;base64,${b64}`;
+  return `data:image/jpeg;base64,${b64}`;
 }
