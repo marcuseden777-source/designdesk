@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { Card } from "@/components/Card";
+import { Button } from "@/components/Button";
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
@@ -40,41 +41,41 @@ export default function DashboardScreen() {
         contentContainerStyle={{ paddingBottom: 32 }}
       >
         {/* ── Editorial Hero ── */}
-        <View className="w-full bg-charcoal p-8 pt-12">
-          <Text className="text-off-white/60 text-sm font-sans tracking-widest uppercase mb-2">
-            Welcome back
-          </Text>
-          <Text className="font-serif text-4xl text-off-white">
-            Hello, {firstName}.
-          </Text>
-        </View>
-
-        {/* ── Stats ── */}
-        <View className="flex-row gap-4 p-5">
-          <View className="flex-1 border-b border-charcoal/20 pb-4">
-            <Text className="text-charcoal text-2xl font-serif">{quoteCount}</Text>
-            <Text className="text-charcoal/70 text-xs font-sans mt-1 uppercase tracking-wider">Quotations</Text>
+        <View className="relative">
+          <View className="w-full bg-charcoal p-8 pt-12 pb-16">
+            <Text className="text-off-white/60 text-sm font-sans tracking-widest uppercase mb-2">
+              Welcome back
+            </Text>
+            <Text className="font-serif text-4xl text-off-white">
+              Hello, {firstName}.
+            </Text>
           </View>
-          <View className="flex-1 border-b border-charcoal/20 pb-4">
-            <Text className="text-charcoal text-2xl font-serif">{recentQuotes.length}</Text>
-            <Text className="text-charcoal/70 text-xs font-sans mt-1 uppercase tracking-wider">Active</Text>
+
+          {/* ── Stats ── */}
+          <View className="absolute -mt-10 left-5 right-5 z-10 bg-off-white shadow-md p-5 rounded-lg flex-row gap-4">
+            <View className="flex-1 border-b border-charcoal/20 pb-4">
+              <Text className="text-charcoal text-2xl font-serif">{quoteCount}</Text>
+              <Text className="text-charcoal/70 text-xs font-sans mt-1 uppercase tracking-wider">Quotations</Text>
+            </View>
+            <View className="flex-1 border-b border-charcoal/20 pb-4">
+              <Text className="text-charcoal text-2xl font-serif">{recentQuotes.length}</Text>
+              <Text className="text-charcoal/70 text-xs font-sans mt-1 uppercase tracking-wider">Active</Text>
+            </View>
           </View>
         </View>
 
         {/* ── Actions ── */}
-        <View className="px-5 mb-8 flex-row gap-4">
-          <TouchableOpacity
+        <View className="w-full bg-charcoal p-5 flex-row gap-4 mt-16">
+          <Button
+            variant="primary"
             onPress={() => router.push("/(app)/design/upload")}
-            className="flex-1 border border-charcoal p-4"
-          >
-            <Text className="font-serif text-lg text-charcoal">New Design</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+            title="New Design"
+          />
+          <Button
+            variant="primary"
             onPress={() => router.push("/(app)/quote/new")}
-            className="flex-1 border border-charcoal p-4"
-          >
-            <Text className="font-serif text-lg text-charcoal">New Quote</Text>
-          </TouchableOpacity>
+            title="New Quote"
+          />
         </View>
 
         {/* ── Recent activity (Masonry-like) ── */}
