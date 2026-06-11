@@ -5,20 +5,13 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          dark: "#1A1A2E",      // Deep navy — primary background
-          mid: "#16213E",       // Mid navy — card backgrounds
-          accent: "#C9A96E",    // Warm gold — primary CTA & highlights
-          "accent-light": "#E8C99A", // Light gold — text on dark
-          surface: "#0F3460",   // Deep blue — secondary surface
-          muted: "#8892A4",     // Muted grey-blue — secondary text
-        },
+        charcoal: "#1a1a1a",
+        "off-white": "#fdfcf8",
+        terracotta: "#b85c38",
       },
       fontFamily: {
-        sans: ["Inter-Regular"],
-        medium: ["Inter-Medium"],
-        semibold: ["Inter-SemiBold"],
-        bold: ["Inter-Bold"],
+        serif: ["Playfair Display", "serif"],
+        sans: ["Montserrat", "sans-serif"],
       },
     },
   },
