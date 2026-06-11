@@ -9,6 +9,9 @@ module.exports = {
         "off-white": "#fdfcf8",
         terracotta: "#b85c38",
       },
+      width: {
+        "two-column": "47%",
+      },
       height: {
         "card-image": "16rem",
       },

@@ -1,68 +1,26 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   RefreshControl,
-  StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { supabase } from "@/lib/supabase";
-import { signOut } from "@/lib/auth";
-import { api } from "@/lib/api";
-import type { Designer } from "@/types";
+import { useDashboardData } from "@/hooks/useDashboardData";
 import { Card } from "@/components/Card";
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const [designer, setDesigner] = useState<Designer | null>(null);
+  const { designer, quoteCount, recentQuotes, loading, refresh } = useDashboardData();
   const [refreshing, setRefreshing] = useState(false);
-  const [quoteCount, setQuoteCount] = useState(0);
-  const [recentQuotes, setRecentQuotes] = useState<any[]>([]);
-
-  async function loadUser() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase
-        .from("designers")
-        .select("subscription_tier")
-        .eq("id", user.id)
-        .single();
-      setDesigner({
-        id: user.id,
-        email: user.email ?? "",
-        full_name: user.user_metadata?.full_name ?? "Designer",
-        subscription_tier: profile?.subscription_tier ?? "free",
-        created_at: user.created_at,
-      });
-    }
-  }
-
-  async function loadStats() {
-    try {
-      const quotes = await api.listQuotations() as any[];
-      setQuoteCount(quotes.length);
-      setRecentQuotes(quotes.slice(0, 4));
-    } catch {
-      // stats are best-effort — silently fail
-    }
-  }
-
-  useEffect(() => {
-    loadUser();
-    loadStats();
-  }, []);
 
   async function onRefresh() {
     setRefreshing(true);
-    await Promise.all([loadUser(), loadStats()]);
+    await refresh();
     setRefreshing(false);
   }
 
@@ -124,7 +82,7 @@ export default function DashboardScreen() {
           <Text className="text-charcoal text-xl font-serif mb-6">Recent Work</Text>
           <View className="flex-row flex-wrap gap-4">
             {recentQuotes.map((q) => (
-              <View key={q.id} style={{ width: '47%' }}>
+              <View key={q.id} className="w-two-column">
                 <Card
                   imageSource={{ uri: 'https://picsum.photos/400/300' }}
                   title={q.client_name}
