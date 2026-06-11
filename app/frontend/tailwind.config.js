@@ -9,6 +9,9 @@ module.exports = {
         "off-white": "#fdfcf8",
         terracotta: "#b85c38",
       },
+      height: {
+        "card-image": "16rem",
+      },
       fontFamily: {
         serif: ["Playfair Display", "serif"],
         sans: ["Montserrat", "sans-serif"],

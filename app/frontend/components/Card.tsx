@@ -10,7 +10,7 @@ interface CardProps {
 
 export const Card = ({ imageSource, title, metadata, onPress }: CardProps) => {
   return (
-    <View className="relative w-full">
+    <View className="relative w-full overflow-hidden">
       {/* Offset layer for structure */}
       <View className="absolute top-2 left-2 w-full h-full bg-charcoal rounded-[2px] opacity-10" />
       
@@ -22,11 +22,12 @@ export const Card = ({ imageSource, title, metadata, onPress }: CardProps) => {
         {/* Edge-to-edge image */}
         <Image
           source={imageSource}
-          className="w-full h-64"
+          className="w-full h-card-image"
           resizeMode="cover"
         />
 
         {/* Info-overlay */}
+        {/* Note: bg-off-white/70 uses standard Tailwind opacity 70% */}
         <View className="absolute bottom-0 left-0 right-0 p-4 bg-off-white/70">
           <Text className="font-serif text-lg text-charcoal" numberOfLines={2}>
             {title}
