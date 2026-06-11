@@ -8,7 +8,7 @@ interface DashboardStatsProps {
 
 export const DashboardStats: React.FC<DashboardStatsProps> = ({ quoteCount, activeQuotesCount }) => {
   return (
-    <View className="absolute -mt-10 left-5 right-5 z-10 bg-off-white shadow-md p-5 rounded-lg flex-row gap-4">
+    <View className="absolute -mt-10 left-5 right-5 z-10 bg-off-white shadow-md rounded-[2px] p-5 flex-row gap-4">
       <View className="flex-1 border-b border-charcoal/20 pb-4">
         <Text className="text-charcoal text-2xl font-serif">{quoteCount}</Text>
         <Text className="text-charcoal/70 text-xs font-sans mt-1 uppercase tracking-wider">Quotations</Text>
