@@ -3,9 +3,4 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    background-color: #fdfcf8;
-    color: #1a1a1a;
-    font-family: 'Montserrat', sans-serif;
-  }
 }

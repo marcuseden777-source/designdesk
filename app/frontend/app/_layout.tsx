@@ -3,6 +3,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { Session } from "@supabase/supabase-js";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { View } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { supabase } from "@/lib/supabase";
 import "../global.css";
@@ -50,11 +51,13 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <AuthGate session={session} />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(app)" />
-        </Stack>
+        <View className="flex-1 bg-off-white text-charcoal font-sans">
+          <AuthGate session={session} />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(app)" />
+          </Stack>
+        </View>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

@@ -189,7 +189,7 @@ export default function DesignUploadScreen() {
   async function handleGenerate() {
     if (!sessionId || !selectedStyle) return;
     setStep("generating");
-    setStatusMsg("Building DALL-E 3 prompt...");
+    setStatusMsg("Building Flux 1 prompt...");
 
     const payload: GenerateDesignPayload = {
       session_id: sessionId,
@@ -359,7 +359,7 @@ export default function DesignUploadScreen() {
           <Text className="text-brand-muted text-sm text-center">{statusMsg}</Text>
           {step === "generating" && (
             <View className="mt-6 bg-brand-mid border border-white/10 rounded-xl px-4 py-3">
-              <Text className="text-brand-muted text-xs text-center">DALL-E 3 renders take 15–30 seconds.</Text>
+              <Text className="text-brand-muted text-xs text-center">Flux 1 renders take 15–30 seconds.</Text>
               <Text className="text-brand-muted text-xs text-center mt-0.5">Hang tight ✦</Text>
             </View>
           )}
@@ -567,7 +567,7 @@ export default function DesignUploadScreen() {
                 ))}
               </View>
               <Text className="text-brand-accent font-semibold text-sm ml-1">{selectedStyle?.name}</Text>
-              <Text className="text-brand-muted text-xs">· DALL-E 3</Text>
+              <Text className="text-brand-muted text-xs">· Flux 1</Text>
             </View>
 
             {/* Summary */}

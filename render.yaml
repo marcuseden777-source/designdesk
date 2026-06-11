@@ -11,10 +11,6 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
-        value: "true"
-      - key: PUPPETEER_EXECUTABLE_PATH
-        value: /usr/bin/google-chrome-stable
       # Set these manually in Render dashboard (sensitive):
       # SUPABASE_URL
       # SUPABASE_SERVICE_ROLE_KEY

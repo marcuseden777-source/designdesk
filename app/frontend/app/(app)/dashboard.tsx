@@ -110,6 +110,7 @@ export default function DashboardScreen() {
   const [designer, setDesigner] = useState<Designer | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [quoteCount, setQuoteCount] = useState(0);
+  const [clientCount, setClientCount] = useState(0);
   const [monthlyTotal, setMonthlyTotal] = useState(0);
   const [recentQuotes, setRecentQuotes] = useState<any[]>([]);
 
@@ -118,11 +119,16 @@ export default function DashboardScreen() {
       data: { user },
     } = await supabase.auth.getUser();
     if (user) {
+      const { data: profile } = await supabase
+        .from("designers")
+        .select("subscription_tier")
+        .eq("id", user.id)
+        .single();
       setDesigner({
         id: user.id,
         email: user.email ?? "",
         full_name: user.user_metadata?.full_name ?? "Designer",
-        subscription_tier: "free",
+        subscription_tier: profile?.subscription_tier ?? "free",
         created_at: user.created_at,
       });
     }
@@ -132,6 +138,7 @@ export default function DashboardScreen() {
     try {
       const quotes = await api.listQuotations() as any[];
       setQuoteCount(quotes.length);
+      setClientCount(new Set(quotes.map((q: any) => q.client_name)).size);
       setRecentQuotes(quotes.slice(0, 3));
       const now = new Date();
       const monthly = quotes
@@ -197,7 +204,7 @@ export default function DashboardScreen() {
         {/* ── Stats bar ── */}
         <View className="flex-row gap-3 px-5 mb-8">
           {[
-            { label: "Projects", value: String(quoteCount), icon: "folder-outline" as const },
+            { label: "Clients", value: String(clientCount), icon: "people-outline" as const },
             { label: "Quotes", value: String(quoteCount), icon: "document-text-outline" as const },
             { label: "This month", value: monthlyTotal > 0 ? `S$${Math.round(monthlyTotal / 1000)}k` : "S$0", icon: "trending-up-outline" as const },
           ].map((stat) => (

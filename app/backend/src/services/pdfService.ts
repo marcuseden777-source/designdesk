@@ -1,4 +1,5 @@
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import { Quotation } from "../types";
 
 function formatSGD(amount: number): string {
@@ -119,14 +120,18 @@ function buildHtml(q: Quotation): string {
 }
 
 export async function generatePDF(quotation: Quotation): Promise<Buffer> {
+  const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH
+    || await chromium.executablePath();
+
   const browser = await puppeteer.launch({
+    args: chromium.args,
+    executablePath,
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
   try {
     const page = await browser.newPage();
-    await page.setContent(buildHtml(quotation), { waitUntil: "networkidle0" });
+    await page.setContent(buildHtml(quotation), { waitUntil: "load" });
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
