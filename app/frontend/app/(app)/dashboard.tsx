@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   ScrollView,
   RefreshControl,
 } from "react-native";
@@ -10,7 +9,8 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { Card } from "@/components/Card";
-import { Button } from "@/components/Button";
+import { DashboardStats } from "@/components/DashboardStats";
+import { DashboardActions } from "@/components/DashboardActions";
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
@@ -51,32 +51,13 @@ export default function DashboardScreen() {
             </Text>
           </View>
 
-          {/* ── Stats ── */}
-          <View className="absolute -mt-10 left-5 right-5 z-10 bg-off-white shadow-md p-5 rounded-lg flex-row gap-4">
-            <View className="flex-1 border-b border-charcoal/20 pb-4">
-              <Text className="text-charcoal text-2xl font-serif">{quoteCount}</Text>
-              <Text className="text-charcoal/70 text-xs font-sans mt-1 uppercase tracking-wider">Quotations</Text>
-            </View>
-            <View className="flex-1 border-b border-charcoal/20 pb-4">
-              <Text className="text-charcoal text-2xl font-serif">{recentQuotes.length}</Text>
-              <Text className="text-charcoal/70 text-xs font-sans mt-1 uppercase tracking-wider">Active</Text>
-            </View>
-          </View>
+          <DashboardStats quoteCount={quoteCount} activeQuotesCount={recentQuotes.length} />
         </View>
 
-        {/* ── Actions ── */}
-        <View className="w-full bg-charcoal p-5 flex-row gap-4 mt-16">
-          <Button
-            variant="primary"
-            onPress={() => router.push("/(app)/design/upload")}
-            title="New Design"
-          />
-          <Button
-            variant="primary"
-            onPress={() => router.push("/(app)/quote/new")}
-            title="New Quote"
-          />
-        </View>
+        <DashboardActions
+          onNewDesign={() => router.push("/(app)/design/upload")}
+          onNewQuote={() => router.push("/(app)/quote/new")}
+        />
 
         {/* ── Recent activity (Masonry-like) ── */}
         <View className="px-5">
@@ -88,7 +69,7 @@ export default function DashboardScreen() {
                   imageSource={{ uri: 'https://picsum.photos/400/300' }}
                   title={q.client_name}
                   metadata={q.project_address ?? "Interior project"}
-                  onPress={() => router.push(`/(app)/quote/${q.id}` as any)}
+                  onPress={() => router.push(`/(app)/quote/${q.id}`)}
                 />
               </View>
             ))}
