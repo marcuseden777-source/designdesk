@@ -163,11 +163,18 @@ export default function DesignUploadScreen() {
     setStatusMsg("Uploading floor plan...");
 
     const formData = new FormData();
-    formData.append("floor_plan", {
-      uri: imageUri,
-      type: "image/jpeg",
-      name: "floor-plan.jpg",
-    } as any);
+    if (Platform.OS === "web") {
+      // On web, imageUri is a blob: URL — fetch it to get the actual Blob
+      const res = await fetch(imageUri);
+      const blob = await res.blob();
+      formData.append("floor_plan", blob, "floor-plan.jpg");
+    } else {
+      formData.append("floor_plan", {
+        uri: imageUri,
+        type: "image/jpeg",
+        name: "floor-plan.jpg",
+      } as any);
+    }
 
     try {
       setStatusMsg("Analysing with Claude Vision...");
