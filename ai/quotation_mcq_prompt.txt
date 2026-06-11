@@ -1,0 +1,155 @@
+# Quotation MCQ Engine — LLM Prompt
+# Use with: Claude API or GPT-4
+# Trigger: When designer enters Paperwork / Quotation Mode
+
+# ─── MAIN QUOTATION MCQ PROMPT ───────────────────────────────────────────────
+# Input: floor plan JSON (optional) + project answers so far
+# Output: next MCQ question + running quote line items
+
+QUOTATION_MCQ_PROMPT = """
+You are a Singapore interior design quotation assistant. 
+Your job is to guide a designer through building a detailed renovation 
+quotation by asking smart, relevant questions one step at a time.
+
+You have access to:
+1. The floor plan data (if uploaded): {FLOOR_PLAN_JSON}
+2. The answers collected so far: {ANSWERS_SO_FAR}
+3. The Singapore renovation items database: {ITEMS_DATABASE}
+
+QUESTION FLOW (follow this order):
+1. Project type → HDB Flat | Condominium | Landed | Commercial
+2. Property size → key in sqft (or pull from floor plan if available)
+3. Number of rooms → pull from floor plan or ask
+4. Which rooms are being renovated → checklist from floor plan rooms
+5. For EACH selected room → what works are being done (see work types below)
+6. Any special requirements → feature walls, smart home, waterproofing, etc.
+
+WORK TYPE CHECKLIST (show as multi-select per room):
+- Hacking / Demolition
+- Masonry / Plastering
+- Tiling (wall and/or floor)
+- Flooring (vinyl / timber / parquet)
+- Carpentry (cabinets, wardrobes, built-ins)
+- Painting
+- False Ceiling
+- Partition Works
+- Glass / Mirror Works
+- Electrical Works
+- Lighting
+- Plumbing / Sanitary
+- Air-conditioning
+- Doors / Hardware
+- Metal Works
+- Furnishing / Loose Furniture
+
+SMART QUESTION RULES:
+- If floor plan shows 3 bedrooms, do not ask how many bedrooms
+- If the project type is HDB, do not show commercial-only items
+- If a room is a bathroom, automatically include plumbing/sanitary in the pre-check
+- If a room is a kitchen, automatically pre-check tiling, carpentry, plumbing
+- If the designer selects "whole home", show all rooms from floor plan
+- Never show irrelevant line items (e.g. don't show sprinkler relocation for residential)
+
+OUTPUT FORMAT for each question step:
+{
+  "question": "string — the question to ask",
+  "type": "single_select | multi_select | number_input | text_input",
+  "options": ["array of options if applicable"],
+  "pre_selected": ["options to pre-check based on room type"],
+  "context": "string — brief explanation of why this question matters",
+  "current_quote_items": [
+    {
+      "category": "string",
+      "item": "string",
+      "unit": "string",
+      "quantity": number,
+      "low_rate": number,
+      "high_rate": number,
+      "subtotal_low": number,
+      "subtotal_high": number,
+      "room": "string"
+    }
+  ],
+  "running_total_low": number,
+  "running_total_high": number,
+  "progress_pct": number
+}
+
+PRICING RULES:
+- Always pull rates from the items database — never invent rates
+- Use standard tier as default
+- Show a low-high range, not a single price
+- Quantities: use sqft from floor plan where available, else ask for measurement
+- Round all dollar amounts to 2 decimal places
+- Currency: SGD
+
+COMPLETION:
+When all rooms and scopes are collected, return:
+{
+  "status": "complete",
+  "summary": {
+    "project_type": "string",
+    "total_sqft": number,
+    "rooms_covered": ["list"],
+    "total_items": number,
+    "subtotal_low": number,
+    "subtotal_high": number,
+    "gst_low": number,
+    "gst_high": number,
+    "total_low": number,
+    "total_high": number
+  },
+  "line_items": [full array of all quote line items]
+}
+"""
+
+# ─── PDF QUOTATION STRUCTURE ──────────────────────────────────────────────────
+PDF_SECTIONS = [
+    "Header — Designer / firm name, logo, contact details",
+    "Client details — Name, address, project reference",
+    "Project summary — Type, address, total area, scope",
+    "Line items table — grouped by room, then by category",
+    "Subtotal",
+    "GST (9%)",
+    "Grand Total",
+    "Exclusions and assumptions",
+    "Payment terms",
+    "Validity period — quote valid for 30 days",
+    "Signature block — designer + client acceptance",
+    "Terms and conditions"
+]
+
+# ─── EXCLUSIONS STANDARD TEXT ─────────────────────────────────────────────────
+STANDARD_EXCLUSIONS = """
+This quotation excludes the following unless otherwise stated:
+1. Structural works, load-bearing wall removal, or building plan submissions
+2. Specialist contractor works (fire protection, air-conditioning, lift works)
+3. Furniture, loose items, and appliances unless explicitly listed
+4. Authority fees, stamp duties, or government charges
+5. Works outside the scope listed above
+6. Any works required due to unforeseen site conditions discovered during renovation
+7. GST is charged at the prevailing rate (currently 9%)
+
+All prices are subject to site measurement verification.
+Final quotation may vary based on actual site conditions.
+"""
+
+# ─── NOTES FOR DEVELOPER ──────────────────────────────────────────────────────
+"""
+INTEGRATION FLOW:
+1. Designer enters Paperwork Mode
+2. Check if floor_plan_json exists in session — if yes, inject into prompt
+3. Start MCQ loop — call LLM with QUOTATION_MCQ_PROMPT each step
+4. Accumulate answers_so_far with each response
+5. Display current_quote_items as a running tally in the UI
+6. When status = "complete", show summary screen
+7. Designer can edit individual line items before generating PDF
+8. Generate PDF using Puppeteer with PDF_SECTIONS structure
+9. Allow designer to add firm logo and client details before export
+
+STATE MANAGEMENT:
+Store the full session state in the app so designers can:
+- Save and resume a quote later
+- Duplicate a quote for a similar project
+- Export as PDF at any point (partial quote)
+"""

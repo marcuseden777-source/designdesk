@@ -1,0 +1,109 @@
+# Design Generation — LLM + Image Generation Prompt
+# Step 1: Use Claude / GPT-4 to build the generation brief
+# Step 2: Pass brief to DALL-E 3 or Stable Diffusion to render
+
+# ─── STEP 1: BRIEF BUILDER PROMPT ────────────────────────────────────────────
+# Input: floor plan JSON (from floor_plan_system_prompt) + chosen style name
+# Output: a structured image generation brief
+
+BRIEF_BUILDER_PROMPT = """
+You are an interior design AI that generates top-view (birds-eye view) 
+floor plan design briefs. You will be given:
+1. A floor plan analysis JSON
+2. A chosen interior design style
+
+Your job is to produce a detailed image generation prompt for a 
+top-view styled floor plan rendering.
+
+RULES:
+- Top-view (overhead birds-eye perspective) ONLY
+- No 3D perspective, no isometric view, no elevation view
+- Stay true to the selected style's color palette and material rules
+- Respect the room layout — do not invent rooms or change the structure
+- Include furniture placement appropriate for each room type
+- Use the style's color palette as the dominant colors in the rendering
+- Show floor materials, furniture silhouettes, and any feature walls
+
+OUTPUT FORMAT:
+Return a JSON object with two fields:
+{
+  "image_prompt": "detailed prompt string for DALL-E or Stable Diffusion",
+  "style_notes": "brief explanation of key style decisions made"
+}
+
+STYLE LIBRARY REFERENCE:
+Use the style rules below when building the prompt.
+
+{STYLE_JSON}
+
+FLOOR PLAN DATA:
+{FLOOR_PLAN_JSON}
+
+SELECTED STYLE: {STYLE_NAME}
+SELECTED ROOMS TO DESIGN: {SELECTED_ROOMS}
+"""
+
+# ─── STEP 2: IMAGE GENERATION PROMPT TEMPLATE ────────────────────────────────
+# This is the base structure passed to DALL-E 3
+# The BRIEF_BUILDER_PROMPT above fills in the [STYLE_CONTENT] section
+
+IMAGE_PROMPT_TEMPLATE = """
+Architectural top-view floor plan rendering, birds-eye overhead perspective, 
+2D flat lay illustration style.
+
+Layout: [ROOM_LAYOUT_DESCRIPTION]
+
+Style: [STYLE_NAME] interior design.
+Color palette: [PRIMARY_COLORS]. Accent colors: [ACCENT_COLORS].
+Floor material: [FLOORING_MATERIAL].
+Furniture: [FURNITURE_DESCRIPTION].
+
+Clean architectural illustration, no perspective distortion, 
+no shadows from side angles, flat overhead view only.
+High detail, professional interior design presentation quality.
+White background outside the floor plan boundary.
+No text labels, no dimensions, no grid lines.
+"""
+
+# ─── DALL-E 3 API CALL STRUCTURE ─────────────────────────────────────────────
+DALLE_CONFIG = {
+    "model": "dall-e-3",
+    "size": "1024x1024",
+    "quality": "hd",
+    "style": "natural",     # "natural" for architectural realism
+    "n": 1                  # generate 1 image; show 2-3 variations to designer
+}
+
+# ─── VARIATION PROMPT ────────────────────────────────────────────────────────
+# Use this to generate alternate colorway versions of the same layout
+
+VARIATION_PROMPT = """
+Same floor plan layout and room arrangement as the previous design.
+Apply a [ALTERNATE_COLORWAY] colorway variation of the [STYLE_NAME] style.
+Keep the same furniture placement and floor plan structure.
+Only change the colors, materials, and surface finishes.
+Top-view overhead perspective only.
+"""
+
+# ─── NOTES FOR DEVELOPER ─────────────────────────────────────────────────────
+"""
+INTEGRATION FLOW:
+1. Receive floor_plan_json from floor plan analysis step
+2. Receive selected_style from designer's style picker
+3. Load matching style object from design_styles.json
+4. Call BRIEF_BUILDER_PROMPT with Claude/GPT-4 → returns image_prompt
+5. Pass image_prompt to DALL-E 3 API using DALLE_CONFIG
+6. Return rendered image to designer in app
+7. Offer 2 variations (different colorway of same style)
+8. Designer approves → saves to project → can proceed to quotation
+
+COST ESTIMATE (DALL-E 3 HD):
+- ~$0.08 per image (1024x1024 HD)
+- 3 variations per session = ~$0.24 per design generation
+- Factor into subscription pricing
+
+FALLBACK:
+If DALL-E 3 is unavailable or too expensive at scale:
+- Use Stable Diffusion XL via Replicate API (~$0.003 per image)
+- Or Midjourney API when available
+"""

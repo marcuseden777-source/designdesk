@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+.env.local
+*.pem
+.DS_Store
+
+# Expo
+app/frontend/.expo/
+app/frontend/android/
+app/frontend/ios/
+
+# Claude / AI tooling logs — never commit these
+.remember/
+.playwright-mcp/
+.claude/
+*.log
