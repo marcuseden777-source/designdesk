@@ -58,7 +58,7 @@ router.post("/", requireAuth, async (req: Request, res: Response): Promise<void>
 // GET /api/quotation/:id — get a single quote
 router.get("/:id", requireAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const quotation = await getQuotation(req.params.id, req.userId);
+    const quotation = await getQuotation(req.params.id as string, req.userId);
     res.json(quotation);
   } catch (err: any) {
     res.status(404).json({ error: "Quotation not found" });
@@ -68,7 +68,7 @@ router.get("/:id", requireAuth, async (req: Request, res: Response): Promise<voi
 // GET /api/quotation/:id/pdf — export as PDF
 router.get("/:id/pdf", requireAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const quotation = await getQuotation(req.params.id, req.userId);
+    const quotation = await getQuotation(req.params.id as string, req.userId);
     const pdfBuffer = await generatePDF(quotation);
 
     res.set({
