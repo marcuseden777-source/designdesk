@@ -39,17 +39,22 @@ router.post("/generate", requireAuth, async (req: Request, res: Response): Promi
       total_sqft ?? null
     );
 
-    // Result is a data URI (base64) — decode and upload to S3
-    let imgBuffer: Buffer;
-    if (generatedResult.startsWith("data:")) {
-      const base64Data = generatedResult.split(",")[1];
-      imgBuffer = Buffer.from(base64Data, "base64");
+    // Upload to S3 if configured, otherwise return data URI directly
+    let permanentUrl: string;
+    if (process.env.S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID) {
+      let imgBuffer: Buffer;
+      if (generatedResult.startsWith("data:")) {
+        const base64Data = generatedResult.split(",")[1];
+        imgBuffer = Buffer.from(base64Data, "base64");
+      } else {
+        const imgResponse = await axios.get(generatedResult, { responseType: "arraybuffer" });
+        imgBuffer = Buffer.from(imgResponse.data);
+      }
+      permanentUrl = await uploadBuffer(imgBuffer, "image/jpeg", "generated-designs");
     } else {
-      // HTTP URL fallback (if service returns a URL instead)
-      const imgResponse = await axios.get(generatedResult, { responseType: "arraybuffer" });
-      imgBuffer = Buffer.from(imgResponse.data);
+      // No S3 configured — return data URI directly (works for demo)
+      permanentUrl = generatedResult;
     }
-    const permanentUrl = await uploadBuffer(imgBuffer, "image/png", "generated-designs");
 
     // Update session
     await supabaseAdmin
