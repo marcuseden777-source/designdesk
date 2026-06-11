@@ -66,7 +66,7 @@ export async function generateDesign(
     response_format: "b64_json",
   } as any); // Nvidia NIM accepts extra params not in OpenAI's type defs
 
-  const b64 = response.data[0]?.b64_json;
+  const b64 = response.data?.[0]?.b64_json;
   if (!b64) throw new Error("Nvidia returned no image data");
 
   // Return as data URI — mobile app renders this directly
