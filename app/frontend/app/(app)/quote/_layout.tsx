@@ -4,7 +4,7 @@ import { QuoteProvider } from "@/lib/quoteContext";
 export default function QuoteLayout() {
   return (
     <QuoteProvider>
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#1A1A2E" } }} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#fdfcf8" } }} />
     </QuoteProvider>
   );
 }

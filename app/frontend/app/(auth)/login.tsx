@@ -11,7 +11,6 @@ import {
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
@@ -52,13 +51,13 @@ function FormInput({
 
   return (
     <View className="mb-4">
-      <Text className="text-brand-muted text-xs font-medium mb-1.5 tracking-wider uppercase">
+      <Text className="text-charcoal/50 text-xs font-sans tracking-wider uppercase mb-1.5">
         {label}
       </Text>
       <View className="relative">
         <TextInput
-          className="bg-brand-mid text-white rounded-xl px-4 py-3.5 text-base border border-white/10"
-          placeholderTextColor="#8892A4"
+          className="bg-white text-charcoal rounded-xl px-4 py-3.5 text-base border border-charcoal/10 font-sans"
+          placeholderTextColor="#999"
           secureTextEntry={hidden}
           autoCapitalize="none"
           {...props}
@@ -71,13 +70,13 @@ function FormInput({
             <Ionicons
               name={hidden ? "eye-outline" : "eye-off-outline"}
               size={20}
-              color="#8892A4"
+              color="#999"
             />
           </TouchableOpacity>
         )}
       </View>
       {error && (
-        <Text className="text-red-400 text-xs mt-1">{error}</Text>
+        <Text className="text-red-500 text-xs mt-1 font-sans">{error}</Text>
       )}
     </View>
   );
@@ -104,7 +103,6 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await signIn(data.email, data.password);
-      // AuthGate in _layout.tsx handles redirect automatically
     } catch (err: any) {
       Alert.alert("Sign In Failed", err.message ?? "Something went wrong.");
     } finally {
@@ -117,7 +115,6 @@ export default function LoginScreen() {
     try {
       const result = await signUp(data.email, data.password, data.fullName);
       if (isAutoConfirmed(result)) {
-        // Email confirmation disabled — session is live, AuthGate redirects automatically
         return;
       }
       Alert.alert(
@@ -133,7 +130,7 @@ export default function LoginScreen() {
   }
 
   return (
-    <LinearGradient colors={["#1A1A2E", "#0F3460"]} className="flex-1">
+    <View className="flex-1 bg-off-white">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
@@ -146,30 +143,30 @@ export default function LoginScreen() {
           <View className="px-6 py-12">
             {/* Logo / wordmark */}
             <View className="items-center mb-10">
-              <View className="w-16 h-16 bg-brand-accent/20 rounded-2xl items-center justify-center mb-4">
-                <Ionicons name="business-outline" size={32} color="#C9A96E" />
+              <View className="w-16 h-16 bg-terracotta/10 rounded-2xl items-center justify-center mb-4">
+                <Ionicons name="business-outline" size={32} color="#b85c38" />
               </View>
-              <Text className="text-white text-3xl font-bold tracking-tight">
+              <Text className="text-charcoal text-3xl font-serif tracking-tight">
                 DesignDesk
               </Text>
-              <Text className="text-brand-muted text-sm mt-1">
+              <Text className="text-charcoal/50 text-sm font-sans mt-1">
                 Interior design, simplified.
               </Text>
             </View>
 
             {/* Tab switcher */}
-            <View className="flex-row bg-brand-mid rounded-xl p-1 mb-8">
+            <View className="flex-row bg-charcoal/5 rounded-xl p-1 mb-8">
               {(["login", "signup"] as const).map((tab) => (
                 <TouchableOpacity
                   key={tab}
                   onPress={() => setMode(tab)}
                   className={`flex-1 py-2.5 rounded-lg items-center ${
-                    mode === tab ? "bg-brand-accent" : ""
+                    mode === tab ? "bg-terracotta" : ""
                   }`}
                 >
                   <Text
-                    className={`text-sm font-semibold ${
-                      mode === tab ? "text-brand-dark" : "text-brand-muted"
+                    className={`text-sm font-sans-semibold ${
+                      mode === tab ? "text-off-white" : "text-charcoal/50"
                     }`}
                   >
                     {tab === "login" ? "Sign In" : "Create Account"}
@@ -216,7 +213,7 @@ export default function LoginScreen() {
                   onPress={() => router.push("/(auth)/forgot-password")}
                   className="items-end mb-6"
                 >
-                  <Text className="text-brand-accent text-sm">
+                  <Text className="text-terracotta text-sm font-sans">
                     Forgot password?
                   </Text>
                 </TouchableOpacity>
@@ -224,13 +221,13 @@ export default function LoginScreen() {
                 <TouchableOpacity
                   onPress={loginForm.handleSubmit(handleLogin)}
                   disabled={loading}
-                  className="bg-brand-accent rounded-xl py-4 items-center"
+                  className="bg-terracotta rounded-xl py-4 items-center"
                   activeOpacity={0.8}
                 >
                   {loading ? (
-                    <ActivityIndicator color="#1A1A2E" />
+                    <ActivityIndicator color="#fdfcf8" />
                   ) : (
-                    <Text className="text-brand-dark font-bold text-base">
+                    <Text className="text-off-white font-sans-bold text-base">
                       Sign In
                     </Text>
                   )}
@@ -305,29 +302,29 @@ export default function LoginScreen() {
                 <TouchableOpacity
                   onPress={signUpForm.handleSubmit(handleSignUp)}
                   disabled={loading}
-                  className="bg-brand-accent rounded-xl py-4 items-center mt-2"
+                  className="bg-terracotta rounded-xl py-4 items-center mt-2"
                   activeOpacity={0.8}
                 >
                   {loading ? (
-                    <ActivityIndicator color="#1A1A2E" />
+                    <ActivityIndicator color="#fdfcf8" />
                   ) : (
-                    <Text className="text-brand-dark font-bold text-base">
+                    <Text className="text-off-white font-sans-bold text-base">
                       Create Account
                     </Text>
                   )}
                 </TouchableOpacity>
 
-                <Text className="text-brand-muted text-xs text-center mt-4">
+                <Text className="text-charcoal/40 text-xs text-center mt-4 font-sans">
                   By signing up you agree to our{" "}
-                  <Text className="text-brand-accent">Terms of Service</Text>{" "}
+                  <Text className="text-terracotta">Terms of Service</Text>{" "}
                   and{" "}
-                  <Text className="text-brand-accent">Privacy Policy</Text>.
+                  <Text className="text-terracotta">Privacy Policy</Text>.
                 </Text>
               </View>
             )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </View>
   );
 }

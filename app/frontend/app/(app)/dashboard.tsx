@@ -77,7 +77,6 @@ export default function DashboardScreen() {
             {recentQuotes.map((q) => (
               <View key={q.id} className="w-two-column">
                 <Card
-                  imageSource={{ uri: 'https://picsum.photos/400/300' }}
                   title={q.client_name}
                   metadata={q.project_address ?? "Interior project"}
                   onPress={() => router.push(`/(app)/quote/${q.id}`)}

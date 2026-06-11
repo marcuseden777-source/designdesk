@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, TouchableOpacity, ScrollView } from "react-native";
+import { Text } from "@/components/Text";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,7 +26,6 @@ const ALL_ROOMS = [
 export default function RoomsScreen() {
   const router = useRouter();
   const { state, dispatch } = useQuote();
-  // Pre-populate from floor plan analysis if available
   const prePopulated = state.design_session_id
     ? (state.rooms.length ? state.rooms : [])
     : [];
@@ -46,26 +46,26 @@ export default function RoomsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-dark" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
         <View className="flex-row items-center px-5 pt-4 mb-2 gap-3">
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="white" />
+            <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
           </TouchableOpacity>
           <View>
-            <Text className="text-brand-muted text-xs tracking-widest uppercase">Step 2 of 4</Text>
-            <Text className="text-white text-xl font-bold">Select Rooms</Text>
+            <Text className="text-charcoal/50 text-xs tracking-widest uppercase">Step 2 of 4</Text>
+            <Text className="text-charcoal text-xl font-serif">Select Rooms</Text>
           </View>
         </View>
 
-        <Text className="text-brand-muted text-sm px-5 mb-6">
+        <Text className="text-charcoal/50 text-sm font-sans px-5 mb-6">
           Select all rooms that are part of this project. Tap to toggle.
         </Text>
 
         {state.design_session_id && state.rooms.length > 0 && (
-          <View className="mx-5 mb-4 bg-brand-accent/10 border border-brand-accent/30 rounded-xl p-3 flex-row items-center gap-2">
-            <Ionicons name="information-circle-outline" size={16} color="#C9A96E" />
-            <Text className="text-brand-accent text-xs flex-1">Pre-filled from your floor plan</Text>
+          <View className="mx-5 mb-4 bg-terracotta/10 border border-terracotta/30 rounded-xl p-3 flex-row items-center gap-2">
+            <Ionicons name="information-circle-outline" size={16} color="#b85c38" />
+            <Text className="text-terracotta text-xs flex-1">Pre-filled from your floor plan</Text>
           </View>
         )}
 
@@ -77,20 +77,20 @@ export default function RoomsScreen() {
                 key={room.name}
                 onPress={() => toggle(room.name)}
                 className={`flex-row items-center gap-3 p-4 rounded-xl border ${
-                  isOn ? "border-brand-accent bg-brand-accent/10" : "border-white/10 bg-brand-mid"
+                  isOn ? "border-terracotta bg-terracotta/10" : "border-charcoal/10 bg-white"
                 }`}
                 activeOpacity={0.7}
               >
-                <View className={`w-9 h-9 rounded-lg items-center justify-center ${isOn ? "bg-brand-accent/20" : "bg-white/5"}`}>
-                  <Ionicons name={room.icon} size={18} color={isOn ? "#C9A96E" : "#8892A4"} />
+                <View className={`w-9 h-9 rounded-lg items-center justify-center ${isOn ? "bg-terracotta/20" : "bg-charcoal/5"}`}>
+                  <Ionicons name={room.icon} size={18} color={isOn ? "#b85c38" : "#999"} />
                 </View>
-                <Text className={`flex-1 text-sm font-medium ${isOn ? "text-brand-accent" : "text-white"}`}>
+                <Text className={`flex-1 text-sm font-sans ${isOn ? "text-terracotta" : "text-charcoal"}`}>
                   {room.name}
                 </Text>
                 <View className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
-                  isOn ? "border-brand-accent bg-brand-accent" : "border-white/20"
+                  isOn ? "border-terracotta bg-terracotta" : "border-charcoal/20"
                 }`}>
-                  {isOn && <Ionicons name="checkmark" size={14} color="#1A1A2E" />}
+                  {isOn && <Ionicons name="checkmark" size={14} color="#fdfcf8" />}
                 </View>
               </TouchableOpacity>
             );
@@ -98,19 +98,19 @@ export default function RoomsScreen() {
         </View>
       </ScrollView>
 
-      <View className="px-5 pb-8 pt-4 border-t border-white/10">
+      <View className="px-5 pb-8 pt-4 border-t border-charcoal/10">
         {selected.length > 0 && (
-          <Text className="text-brand-muted text-xs text-center mb-3">
+          <Text className="text-charcoal/50 text-xs text-center mb-3">
             {selected.length} room{selected.length !== 1 ? "s" : ""} selected
           </Text>
         )}
         <TouchableOpacity
           onPress={handleNext}
           disabled={!selected.length}
-          className={`py-4 rounded-xl items-center ${selected.length ? "bg-brand-accent" : "bg-brand-mid"}`}
+          className={`py-4 rounded-xl items-center ${selected.length ? "bg-terracotta" : "bg-charcoal/10"}`}
           activeOpacity={0.8}
         >
-          <Text className={`font-bold text-base ${selected.length ? "text-brand-dark" : "text-brand-muted"}`}>
+          <Text className={`font-sans-bold text-base ${selected.length ? "text-off-white" : "text-charcoal/40"}`}>
             Next: Add Scope →
           </Text>
         </TouchableOpacity>

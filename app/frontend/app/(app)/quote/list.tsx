@@ -30,10 +30,10 @@ const STATUS_CONFIG: Record<
   QuotationSummary["status"],
   { label: string; color: string; bg: string }
 > = {
-  draft:    { label: "Draft",    color: "#8892A4", bg: "rgba(136,146,164,0.15)" },
-  sent:     { label: "Sent",     color: "#C9A96E", bg: "rgba(201,169,110,0.15)" },
-  accepted: { label: "Accepted", color: "#4CAF82", bg: "rgba(76,175,130,0.15)" },
-  rejected: { label: "Rejected", color: "#E57373", bg: "rgba(229,115,115,0.15)" },
+  draft:    { label: "Draft",    color: "#999",    bg: "rgba(153,153,153,0.10)" },
+  sent:     { label: "Sent",     color: "#b85c38", bg: "rgba(184,92,56,0.10)" },
+  accepted: { label: "Accepted", color: "#16a34a", bg: "rgba(22,163,74,0.10)" },
+  rejected: { label: "Rejected", color: "#dc2626", bg: "rgba(220,38,38,0.10)" },
 };
 
 function formatCurrency(amount: number) {
@@ -63,52 +63,48 @@ function QuoteCard({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.75}
-      className="bg-brand-mid border border-white/8 rounded-2xl p-4 mb-3"
+      className="bg-white border border-charcoal/10 rounded-2xl p-4 mb-3"
     >
-      {/* Top row: client + status badge */}
       <View className="flex-row items-center justify-between mb-2">
-        <Text className="text-white text-sm font-semibold flex-1 mr-3" numberOfLines={1}>
+        <Text className="text-charcoal text-sm font-sans-semibold flex-1 mr-3" numberOfLines={1}>
           {quote.client_name}
         </Text>
         <View
           style={{ backgroundColor: status.bg }}
           className="px-2.5 py-1 rounded-full"
         >
-          <Text style={{ color: status.color }} className="text-xs font-medium">
+          <Text style={{ color: status.color }} className="text-xs font-sans">
             {status.label}
           </Text>
         </View>
       </View>
 
-      {/* Address */}
-      <Text className="text-brand-muted text-xs mb-3" numberOfLines={1}>
+      <Text className="text-charcoal/50 text-xs mb-3 font-sans" numberOfLines={1}>
         {quote.project_address}
       </Text>
 
-      {/* Bottom row: type + date + total */}
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-1.5">
-          <Ionicons name="home-outline" size={12} color="#8892A4" />
-          <Text className="text-brand-muted text-xs capitalize">
+          <Ionicons name="home-outline" size={12} color="#999" />
+          <Text className="text-charcoal/50 text-xs capitalize font-sans">
             {quote.project_type}
           </Text>
         </View>
         <View className="flex-row items-center gap-3">
           <View className="flex-row items-center gap-1">
-            <Ionicons name="calendar-outline" size={12} color="#8892A4" />
-            <Text className="text-brand-muted text-xs">
+            <Ionicons name="calendar-outline" size={12} color="#999" />
+            <Text className="text-charcoal/50 text-xs font-sans">
               {formatDate(quote.created_at)}
             </Text>
           </View>
-          <Text className="text-brand-accent text-sm font-bold">
+          <Text className="text-terracotta text-sm font-sans-bold">
             {formatCurrency(quote.grand_total)}
           </Text>
         </View>
       </View>
 
-      {/* Tap hint */}
       <View className="absolute right-4 top-1/2 -translate-y-2">
-        <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.2)" />
+        <Ionicons name="chevron-forward" size={16} color="rgba(26,26,26,0.15)" />
       </View>
     </TouchableOpacity>
   );
@@ -119,22 +115,22 @@ function QuoteCard({
 function EmptyState({ onNew }: { onNew: () => void }) {
   return (
     <View className="flex-1 items-center justify-center px-8 pt-16">
-      <View className="w-20 h-20 bg-brand-mid border border-white/8 rounded-3xl items-center justify-center mb-5">
-        <Ionicons name="document-text-outline" size={36} color="#8892A4" />
+      <View className="w-20 h-20 bg-charcoal/5 border border-charcoal/10 rounded-3xl items-center justify-center mb-5">
+        <Ionicons name="document-text-outline" size={36} color="#999" />
       </View>
-      <Text className="text-white text-lg font-bold text-center mb-2">
+      <Text className="text-charcoal text-lg font-serif text-center mb-2">
         No quotations yet
       </Text>
-      <Text className="text-brand-muted text-sm text-center leading-relaxed mb-8">
+      <Text className="text-charcoal/50 text-sm font-sans text-center leading-relaxed mb-8">
         Create your first professional quotation — room by room, with PDF export.
       </Text>
       <TouchableOpacity
         onPress={onNew}
         activeOpacity={0.85}
-        className="bg-brand-accent px-6 py-3 rounded-2xl flex-row items-center gap-2"
+        className="bg-terracotta px-6 py-3 rounded-2xl flex-row items-center gap-2"
       >
-        <Ionicons name="add" size={18} color="#1A1A2E" />
-        <Text className="text-brand-dark text-sm font-bold">New Quotation</Text>
+        <Ionicons name="add" size={18} color="#fdfcf8" />
+        <Text className="text-off-white text-sm font-sans-bold">New Quotation</Text>
       </TouchableOpacity>
     </View>
   );
@@ -170,20 +166,20 @@ export default function QuoteListScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-dark" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>
       {/* ── Header ── */}
       <View className="flex-row items-center justify-between px-5 pt-4 pb-5">
         <View className="flex-row items-center gap-3">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="w-9 h-9 bg-brand-mid border border-white/10 rounded-full items-center justify-center"
+            className="w-9 h-9 bg-charcoal/5 border border-charcoal/10 rounded-full items-center justify-center"
           >
-            <Ionicons name="arrow-back" size={18} color="white" />
+            <Ionicons name="arrow-back" size={18} color="#1a1a1a" />
           </TouchableOpacity>
           <View>
-            <Text className="text-white text-xl font-bold">Quotations</Text>
+            <Text className="text-charcoal text-xl font-serif">Quotations</Text>
             {quotes.length > 0 && (
-              <Text className="text-brand-muted text-xs mt-0.5">
+              <Text className="text-charcoal/50 text-xs mt-0.5 font-sans">
                 {quotes.length} {quotes.length === 1 ? "quote" : "quotes"}
               </Text>
             )}
@@ -191,29 +187,29 @@ export default function QuoteListScreen() {
         </View>
         <TouchableOpacity
           onPress={() => router.push("/(app)/quote/new")}
-          className="w-9 h-9 bg-brand-accent/20 border border-brand-accent/30 rounded-full items-center justify-center"
+          className="w-9 h-9 bg-terracotta/10 border border-terracotta/30 rounded-full items-center justify-center"
         >
-          <Ionicons name="add" size={20} color="#C9A96E" />
+          <Ionicons name="add" size={20} color="#b85c38" />
         </TouchableOpacity>
       </View>
 
       {/* ── Content ── */}
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#C9A96E" size="large" />
+          <ActivityIndicator color="#b85c38" size="large" />
         </View>
       ) : error ? (
         <View className="flex-1 items-center justify-center px-8">
-          <Ionicons name="alert-circle-outline" size={40} color="#E57373" />
-          <Text className="text-white text-base font-semibold mt-3 text-center">
+          <Ionicons name="alert-circle-outline" size={40} color="#dc2626" />
+          <Text className="text-charcoal text-base font-sans-semibold mt-3 text-center">
             Something went wrong
           </Text>
-          <Text className="text-brand-muted text-sm text-center mt-1">{error}</Text>
+          <Text className="text-charcoal/50 text-sm font-sans text-center mt-1">{error}</Text>
           <TouchableOpacity
             onPress={() => { setLoading(true); loadQuotes().finally(() => setLoading(false)); }}
-            className="mt-6 bg-brand-mid border border-white/10 px-5 py-2.5 rounded-xl"
+            className="mt-6 bg-white border border-charcoal/10 px-5 py-2.5 rounded-xl"
           >
-            <Text className="text-white text-sm font-medium">Try again</Text>
+            <Text className="text-charcoal text-sm font-sans">Try again</Text>
           </TouchableOpacity>
         </View>
       ) : quotes.length === 0 ? (
@@ -234,7 +230,7 @@ export default function QuoteListScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#C9A96E"
+              tintColor="#b85c38"
             />
           }
         />

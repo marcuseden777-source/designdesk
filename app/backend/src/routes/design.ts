@@ -30,8 +30,8 @@ router.post("/generate", requireAuth, async (req: Request, res: Response): Promi
       return;
     }
 
-    // Generate via DALL-E 3
-    const dalleUrl = await generateDesign(
+    // Generate via Flux 1 (Nvidia NIM)
+    const generatedResult = await generateDesign(
       session.floor_plan_analysis,
       style,
       selected_rooms,
@@ -39,9 +39,16 @@ router.post("/generate", requireAuth, async (req: Request, res: Response): Promi
       total_sqft ?? null
     );
 
-    // Download DALL-E image and re-upload to S3 (DALL-E URLs expire after ~1hr)
-    const imgResponse = await axios.get(dalleUrl, { responseType: "arraybuffer" });
-    const imgBuffer = Buffer.from(imgResponse.data);
+    // Result is a data URI (base64) — decode and upload to S3
+    let imgBuffer: Buffer;
+    if (generatedResult.startsWith("data:")) {
+      const base64Data = generatedResult.split(",")[1];
+      imgBuffer = Buffer.from(base64Data, "base64");
+    } else {
+      // HTTP URL fallback (if service returns a URL instead)
+      const imgResponse = await axios.get(generatedResult, { responseType: "arraybuffer" });
+      imgBuffer = Buffer.from(imgResponse.data);
+    }
     const permanentUrl = await uploadBuffer(imgBuffer, "image/png", "generated-designs");
 
     // Update session

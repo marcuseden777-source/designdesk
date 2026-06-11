@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { Text } from "@/components/Text";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -43,7 +44,6 @@ export default function NewQuoteScreen() {
     params.sqft ? params.sqft : ""
   );
 
-  // Seed QuoteContext with design session data when arriving from Design Mode
   useEffect(() => {
     if (params.session_id) {
       dispatch({ type: "SET_SESSION_ID", design_session_id: params.session_id });
@@ -65,28 +65,28 @@ export default function NewQuoteScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-dark" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
           {/* Header */}
           <View className="flex-row items-center px-5 pt-4 mb-8 gap-3">
             <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color="white" />
+              <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
             </TouchableOpacity>
             <View>
-              <Text className="text-brand-muted text-xs tracking-widest uppercase">Step 1 of 4</Text>
-              <Text className="text-white text-xl font-bold">Project Details</Text>
+              <Text className="text-charcoal/50 text-xs tracking-widest uppercase">Step 1 of 4</Text>
+              <Text className="text-charcoal text-xl font-serif">Project Details</Text>
             </View>
           </View>
 
           <View className="px-5 gap-6">
             {/* Client name */}
             <View>
-              <Text className="text-brand-muted text-xs font-semibold tracking-widest uppercase mb-2">Client Name</Text>
+              <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-2">Client Name</Text>
               <TextInput
-                className="bg-brand-mid text-white rounded-xl px-4 py-3.5 border border-white/10"
+                className="bg-white text-charcoal rounded-xl px-4 py-3.5 border border-charcoal/10 font-sans"
                 placeholder="e.g. Jane Tan"
-                placeholderTextColor="#8892A4"
+                placeholderTextColor="#999"
                 value={clientName}
                 onChangeText={setClientName}
                 autoCapitalize="words"
@@ -95,11 +95,11 @@ export default function NewQuoteScreen() {
 
             {/* Address */}
             <View>
-              <Text className="text-brand-muted text-xs font-semibold tracking-widest uppercase mb-2">Project Address</Text>
+              <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-2">Project Address</Text>
               <TextInput
-                className="bg-brand-mid text-white rounded-xl px-4 py-3.5 border border-white/10"
+                className="bg-white text-charcoal rounded-xl px-4 py-3.5 border border-charcoal/10 font-sans"
                 placeholder="e.g. 123 Orchard Road, #12-34"
-                placeholderTextColor="#8892A4"
+                placeholderTextColor="#999"
                 value={address}
                 onChangeText={setAddress}
               />
@@ -107,7 +107,7 @@ export default function NewQuoteScreen() {
 
             {/* Property type */}
             <View>
-              <Text className="text-brand-muted text-xs font-semibold tracking-widest uppercase mb-3">Property Type</Text>
+              <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-3">Property Type</Text>
               <View className="gap-2">
                 {PROJECT_TYPES.map((pt) => (
                   <TouchableOpacity
@@ -115,16 +115,16 @@ export default function NewQuoteScreen() {
                     onPress={() => setProjectType(pt.key as any)}
                     className={`flex-row items-center gap-3 p-4 rounded-xl border ${
                       projectType === pt.key
-                        ? "border-brand-accent bg-brand-accent/10"
-                        : "border-white/10 bg-brand-mid"
+                        ? "border-terracotta bg-terracotta/10"
+                        : "border-charcoal/10 bg-white"
                     }`}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name={pt.icon} size={20} color={projectType === pt.key ? "#C9A96E" : "#8892A4"} />
-                    <Text className={`flex-1 text-sm font-medium ${projectType === pt.key ? "text-brand-accent" : "text-white"}`}>
+                    <Ionicons name={pt.icon} size={20} color={projectType === pt.key ? "#b85c38" : "#999"} />
+                    <Text className={`flex-1 text-sm font-sans ${projectType === pt.key ? "text-terracotta" : "text-charcoal"}`}>
                       {pt.label}
                     </Text>
-                    {projectType === pt.key && <Ionicons name="checkmark-circle" size={18} color="#C9A96E" />}
+                    {projectType === pt.key && <Ionicons name="checkmark-circle" size={18} color="#b85c38" />}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -132,7 +132,7 @@ export default function NewQuoteScreen() {
 
             {/* Floor area */}
             <View>
-              <Text className="text-brand-muted text-xs font-semibold tracking-widest uppercase mb-3">Floor Area</Text>
+              <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-3">Floor Area</Text>
               <View className="flex-row flex-wrap gap-2 mb-3">
                 {SQFT_OPTIONS.map((opt) => (
                   <TouchableOpacity
@@ -140,21 +140,21 @@ export default function NewQuoteScreen() {
                     onPress={() => { setSqft(opt.value); setCustomSqft(""); }}
                     className={`px-4 py-2.5 rounded-xl border ${
                       sqft === opt.value && !customSqft
-                        ? "border-brand-accent bg-brand-accent/10"
-                        : "border-white/10 bg-brand-mid"
+                        ? "border-terracotta bg-terracotta/10"
+                        : "border-charcoal/10 bg-white"
                     }`}
                     activeOpacity={0.7}
                   >
-                    <Text className={`text-sm font-medium ${sqft === opt.value && !customSqft ? "text-brand-accent" : "text-white"}`}>
+                    <Text className={`text-sm font-sans ${sqft === opt.value && !customSqft ? "text-terracotta" : "text-charcoal"}`}>
                       {opt.label}
                     </Text>
                   </TouchableOpacity>
                 ))}
               </View>
               <TextInput
-                className={`bg-brand-mid text-white rounded-xl px-4 py-3.5 border ${customSqft ? "border-brand-accent" : "border-white/10"}`}
+                className={`bg-white text-charcoal rounded-xl px-4 py-3.5 border font-sans ${customSqft ? "border-terracotta" : "border-charcoal/10"}`}
                 placeholder="Or enter exact sqft"
-                placeholderTextColor="#8892A4"
+                placeholderTextColor="#999"
                 keyboardType="numeric"
                 value={customSqft}
                 onChangeText={(v) => { setCustomSqft(v); if (v) setSqft(parseInt(v) || null); else setSqft(null); }}
@@ -164,14 +164,14 @@ export default function NewQuoteScreen() {
         </ScrollView>
 
         {/* CTA */}
-        <View className="px-5 pb-8 pt-4 border-t border-white/10">
+        <View className="px-5 pb-8 pt-4 border-t border-charcoal/10">
           <TouchableOpacity
             onPress={handleNext}
             disabled={!canProceed}
-            className={`py-4 rounded-xl items-center ${canProceed ? "bg-brand-accent" : "bg-brand-mid"}`}
+            className={`py-4 rounded-xl items-center ${canProceed ? "bg-terracotta" : "bg-charcoal/10"}`}
             activeOpacity={0.8}
           >
-            <Text className={`font-bold text-base ${canProceed ? "text-brand-dark" : "text-brand-muted"}`}>
+            <Text className={`font-sans-bold text-base ${canProceed ? "text-off-white" : "text-charcoal/40"}`}>
               Next: Select Rooms →
             </Text>
           </TouchableOpacity>

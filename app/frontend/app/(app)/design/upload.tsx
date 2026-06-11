@@ -98,12 +98,12 @@ const PROJECT_TYPES = [
 ];
 
 const CONFIDENCE_STYLE = {
-  high:   { chip: "bg-green-900/30 border border-green-500/30",   text: "text-green-400",  icon: "checkmark-circle"    as const, label: "High confidence" },
-  medium: { chip: "bg-yellow-900/30 border border-yellow-500/30", text: "text-yellow-400", icon: "alert-circle"         as const, label: "Medium confidence" },
-  low:    { chip: "bg-red-900/30 border border-red-500/30",       text: "text-red-400",    icon: "warning"              as const, label: "Low — review carefully" },
+  high:   { chip: "bg-green-50 border border-green-200",     text: "text-green-700",  icon: "checkmark-circle"    as const, label: "High confidence" },
+  medium: { chip: "bg-yellow-50 border border-yellow-200",   text: "text-yellow-700", icon: "alert-circle"         as const, label: "Medium confidence" },
+  low:    { chip: "bg-red-50 border border-red-200",         text: "text-red-700",    icon: "warning"              as const, label: "Low — review carefully" },
 };
 
-const IMG_SIZE = Dimensions.get("window").width - 40; // mx-5 each side
+const IMG_SIZE = Dimensions.get("window").width - 40;
 
 type Step = "upload" | "analyzing" | "confirm" | "style" | "generating" | "result";
 
@@ -123,7 +123,6 @@ export default function DesignUploadScreen() {
   const [designUrl, setDesignUrl]         = useState<string | null>(null);
   const [statusMsg, setStatusMsg]         = useState("");
 
-  // ── Navigation ──────────────────────────────────────────────────────────────
   function handleBack() {
     if (step === "upload")   { router.back(); return; }
     if (step === "confirm")  { setStep("upload"); return; }
@@ -131,7 +130,6 @@ export default function DesignUploadScreen() {
     if (step === "result")   { setStep("style"); return; }
   }
 
-  // ── Image pickers ────────────────────────────────────────────────────────────
   async function pickFromLibrary() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -156,7 +154,6 @@ export default function DesignUploadScreen() {
     if (!result.canceled) setImageUri(result.assets[0].uri);
   }
 
-  // ── Analyse ──────────────────────────────────────────────────────────────────
   async function handleAnalyze() {
     if (!imageUri) return;
     setStep("analyzing");
@@ -164,7 +161,6 @@ export default function DesignUploadScreen() {
 
     const formData = new FormData();
     if (Platform.OS === "web") {
-      // On web, imageUri is a blob: URL — fetch it to get the actual Blob
       const res = await fetch(imageUri);
       const blob = await res.blob();
       formData.append("floor_plan", blob, "floor-plan.jpg");
@@ -192,7 +188,6 @@ export default function DesignUploadScreen() {
     }
   }
 
-  // ── Generate ─────────────────────────────────────────────────────────────────
   async function handleGenerate() {
     if (!sessionId || !selectedStyle) return;
     setStep("generating");
@@ -217,7 +212,6 @@ export default function DesignUploadScreen() {
     }
   }
 
-  // ── Handoff to quotation ─────────────────────────────────────────────────────
   function handleStartQuotation() {
     router.push({
       pathname: "/(app)/quote/new",
@@ -230,7 +224,6 @@ export default function DesignUploadScreen() {
     });
   }
 
-  // ── Toggle room ───────────────────────────────────────────────────────────────
   function toggleRoom(name: string) {
     setSelectedRooms((prev) =>
       prev.includes(name) ? prev.filter((r) => r !== name) : [...prev, name]
@@ -239,112 +232,106 @@ export default function DesignUploadScreen() {
 
   const showBack = step !== "analyzing" && step !== "generating";
 
-  // ─── RENDER ───────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView className="flex-1 bg-brand-dark" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <View className="flex-row items-center px-5 pt-4 pb-2 gap-3">
         {showBack && (
           <TouchableOpacity onPress={handleBack}>
-            <Ionicons name="arrow-back" size={24} color="white" />
+            <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
           </TouchableOpacity>
         )}
         <View>
           {step === "upload" && (
             <>
-              <Text className="text-brand-muted text-xs tracking-widest uppercase">Design Mode</Text>
-              <Text className="text-white text-xl font-bold">Upload Floor Plan</Text>
+              <Text className="text-charcoal/50 text-xs tracking-widest uppercase font-sans">Design Mode</Text>
+              <Text className="text-charcoal text-xl font-serif">Upload Floor Plan</Text>
             </>
           )}
           {(step === "analyzing" || step === "generating") && (
-            <Text className="text-white text-xl font-bold">
+            <Text className="text-charcoal text-xl font-serif">
               {step === "analyzing" ? "Analysing..." : "Generating..."}
             </Text>
           )}
           {step === "confirm" && (
             <>
-              <Text className="text-brand-muted text-xs tracking-widest uppercase">Step 1 of 2</Text>
-              <Text className="text-white text-xl font-bold">Review Analysis</Text>
+              <Text className="text-charcoal/50 text-xs tracking-widest uppercase font-sans">Step 1 of 2</Text>
+              <Text className="text-charcoal text-xl font-serif">Review Analysis</Text>
             </>
           )}
           {step === "style" && (
             <>
-              <Text className="text-brand-muted text-xs tracking-widest uppercase">Step 2 of 2</Text>
-              <Text className="text-white text-xl font-bold">Choose a Style</Text>
+              <Text className="text-charcoal/50 text-xs tracking-widest uppercase font-sans">Step 2 of 2</Text>
+              <Text className="text-charcoal text-xl font-serif">Choose a Style</Text>
             </>
           )}
           {step === "result" && (
             <>
-              <Text className="text-brand-muted text-xs tracking-widest uppercase">Design Ready</Text>
-              <Text className="text-white text-xl font-bold">{selectedStyle?.name} Render</Text>
+              <Text className="text-charcoal/50 text-xs tracking-widest uppercase font-sans">Design Ready</Text>
+              <Text className="text-charcoal text-xl font-serif">{selectedStyle?.name} Render</Text>
             </>
           )}
         </View>
       </View>
 
-      {/* ════════════════════════════════════════════════════════════════════ */}
-      {/* UPLOAD                                                              */}
-      {/* ════════════════════════════════════════════════════════════════════ */}
+      {/* ═══ UPLOAD ═══ */}
       {step === "upload" && (
         <>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-            {/* Drop zone */}
             <TouchableOpacity onPress={pickFromLibrary} activeOpacity={0.8} className="mx-5 mt-3 mb-4">
               {imageUri ? (
-                <View className="rounded-2xl overflow-hidden border-2 border-brand-accent">
+                <View className="rounded-2xl overflow-hidden border-2 border-terracotta">
                   <Image source={{ uri: imageUri }} style={{ width: IMG_SIZE, height: IMG_SIZE }} resizeMode="cover" />
-                  <View className="absolute bottom-3 right-3 bg-black/60 rounded-xl px-3 py-1.5 flex-row items-center gap-1.5">
-                    <Ionicons name="swap-horizontal" size={14} color="white" />
-                    <Text className="text-white text-xs font-medium">Change</Text>
+                  <View className="absolute bottom-3 right-3 bg-charcoal/60 rounded-xl px-3 py-1.5 flex-row items-center gap-1.5">
+                    <Ionicons name="swap-horizontal" size={14} color="#fdfcf8" />
+                    <Text className="text-off-white text-xs font-sans">Change</Text>
                   </View>
                 </View>
               ) : (
-                <View className="border-2 border-dashed border-white/20 rounded-2xl items-center justify-center py-16 bg-brand-mid">
-                  <View className="w-16 h-16 rounded-2xl bg-brand-accent/10 items-center justify-center mb-4">
-                    <Ionicons name="document-outline" size={32} color="#C9A96E" />
+                <View className="border-2 border-dashed border-charcoal/20 rounded-2xl items-center justify-center py-16 bg-white">
+                  <View className="w-16 h-16 rounded-2xl bg-terracotta/10 items-center justify-center mb-4">
+                    <Ionicons name="document-outline" size={32} color="#b85c38" />
                   </View>
-                  <Text className="text-white font-semibold text-base mb-1">Tap to upload floor plan</Text>
-                  <Text className="text-brand-muted text-sm">JPEG · PNG · WebP · Max 20 MB</Text>
+                  <Text className="text-charcoal font-sans-semibold text-base mb-1">Tap to upload floor plan</Text>
+                  <Text className="text-charcoal/50 text-sm font-sans">JPEG · PNG · WebP · Max 20 MB</Text>
                 </View>
               )}
             </TouchableOpacity>
 
-            {/* Pickers row */}
             <View className="flex-row px-5 gap-3 mb-6">
-              <TouchableOpacity onPress={pickFromLibrary} className="flex-1 flex-row items-center justify-center gap-2 bg-brand-mid border border-white/10 rounded-xl py-3.5" activeOpacity={0.7}>
-                <Ionicons name="images-outline" size={18} color="#C9A96E" />
-                <Text className="text-white font-medium text-sm">Photo Library</Text>
+              <TouchableOpacity onPress={pickFromLibrary} className="flex-1 flex-row items-center justify-center gap-2 bg-white border border-charcoal/10 rounded-xl py-3.5" activeOpacity={0.7}>
+                <Ionicons name="images-outline" size={18} color="#b85c38" />
+                <Text className="text-charcoal font-sans text-sm">Photo Library</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={takePhoto} className="flex-1 flex-row items-center justify-center gap-2 bg-brand-mid border border-white/10 rounded-xl py-3.5" activeOpacity={0.7}>
-                <Ionicons name="camera-outline" size={18} color="#C9A96E" />
-                <Text className="text-white font-medium text-sm">Camera</Text>
+              <TouchableOpacity onPress={takePhoto} className="flex-1 flex-row items-center justify-center gap-2 bg-white border border-charcoal/10 rounded-xl py-3.5" activeOpacity={0.7}>
+                <Ionicons name="camera-outline" size={18} color="#b85c38" />
+                <Text className="text-charcoal font-sans text-sm">Camera</Text>
               </TouchableOpacity>
             </View>
 
-            {/* What Claude detects */}
             <View className="px-5">
-              <Text className="text-brand-muted text-xs font-semibold tracking-widest uppercase mb-3">What Claude Vision detects</Text>
+              <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-3">What Claude Vision detects</Text>
               <View className="flex-row flex-wrap gap-2">
                 {["Room count & types", "Estimated sqft", "Wet areas", "Layout type", "Structural features", "Renovation complexity"].map((item) => (
-                  <View key={item} className="flex-row items-center gap-1.5 bg-brand-mid border border-white/10 rounded-full px-3 py-1.5">
-                    <Ionicons name="checkmark-circle" size={12} color="#C9A96E" />
-                    <Text className="text-white text-xs">{item}</Text>
+                  <View key={item} className="flex-row items-center gap-1.5 bg-white border border-charcoal/10 rounded-full px-3 py-1.5">
+                    <Ionicons name="checkmark-circle" size={12} color="#b85c38" />
+                    <Text className="text-charcoal text-xs font-sans">{item}</Text>
                   </View>
                 ))}
               </View>
             </View>
           </ScrollView>
 
-          <View className="px-5 pb-8 pt-4 border-t border-white/10">
+          <View className="px-5 pb-8 pt-4 border-t border-charcoal/10">
             <TouchableOpacity
               onPress={handleAnalyze}
               disabled={!imageUri}
-              className={`py-4 rounded-xl items-center flex-row justify-center gap-2 ${imageUri ? "bg-brand-accent" : "bg-brand-mid"}`}
+              className={`py-4 rounded-xl items-center flex-row justify-center gap-2 ${imageUri ? "bg-terracotta" : "bg-charcoal/10"}`}
               activeOpacity={0.8}
             >
-              <Ionicons name="scan-outline" size={18} color={imageUri ? "#1A1A2E" : "#8892A4"} />
-              <Text className={`font-bold text-base ${imageUri ? "text-brand-dark" : "text-brand-muted"}`}>
+              <Ionicons name="scan-outline" size={18} color={imageUri ? "#fdfcf8" : "#999"} />
+              <Text className={`font-sans-bold text-base ${imageUri ? "text-off-white" : "text-charcoal/40"}`}>
                 Analyse with Claude Vision →
               </Text>
             </TouchableOpacity>
@@ -352,47 +339,40 @@ export default function DesignUploadScreen() {
         </>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════ */}
-      {/* LOADING (analyzing / generating)                                   */}
-      {/* ════════════════════════════════════════════════════════════════════ */}
+      {/* ═══ LOADING ═══ */}
       {(step === "analyzing" || step === "generating") && (
         <View className="flex-1 items-center justify-center px-8">
-          <View className="w-20 h-20 rounded-2xl bg-brand-accent/10 items-center justify-center mb-6">
-            <ActivityIndicator size="large" color="#C9A96E" />
+          <View className="w-20 h-20 rounded-2xl bg-terracotta/10 items-center justify-center mb-6">
+            <ActivityIndicator size="large" color="#b85c38" />
           </View>
-          <Text className="text-white text-base font-semibold text-center mb-2">
+          <Text className="text-charcoal text-base font-sans-semibold text-center mb-2">
             {step === "analyzing" ? "Analysing your floor plan" : "Generating your design"}
           </Text>
-          <Text className="text-brand-muted text-sm text-center">{statusMsg}</Text>
+          <Text className="text-charcoal/50 text-sm font-sans text-center">{statusMsg}</Text>
           {step === "generating" && (
-            <View className="mt-6 bg-brand-mid border border-white/10 rounded-xl px-4 py-3">
-              <Text className="text-brand-muted text-xs text-center">Flux 1 renders take 15–30 seconds.</Text>
-              <Text className="text-brand-muted text-xs text-center mt-0.5">Hang tight ✦</Text>
+            <View className="mt-6 bg-white border border-charcoal/10 rounded-xl px-4 py-3">
+              <Text className="text-charcoal/50 text-xs font-sans text-center">Flux 1 renders take 15–30 seconds.</Text>
+              <Text className="text-charcoal/50 text-xs font-sans text-center mt-0.5">Hang tight</Text>
             </View>
           )}
         </View>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════ */}
-      {/* CONFIRM                                                             */}
-      {/* ════════════════════════════════════════════════════════════════════ */}
+      {/* ═══ CONFIRM ═══ */}
       {step === "confirm" && analysis && (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-
-            {/* Confidence banner */}
             <View className={`mx-5 mt-2 mb-4 rounded-xl p-3 flex-row items-center gap-2 ${CONFIDENCE_STYLE[analysis.confidence].chip}`}>
               <Ionicons name={CONFIDENCE_STYLE[analysis.confidence].icon} size={16}
-                color={analysis.confidence === "high" ? "#4ade80" : analysis.confidence === "medium" ? "#facc15" : "#f87171"} />
-              <Text className={`text-xs flex-1 ${CONFIDENCE_STYLE[analysis.confidence].text}`}>
+                color={analysis.confidence === "high" ? "#16a34a" : analysis.confidence === "medium" ? "#ca8a04" : "#dc2626"} />
+              <Text className={`text-xs flex-1 font-sans ${CONFIDENCE_STYLE[analysis.confidence].text}`}>
                 {CONFIDENCE_STYLE[analysis.confidence].label}
                 {analysis.layout_type ? ` · ${analysis.layout_type}` : ""}
               </Text>
             </View>
 
-            {/* Detected rooms */}
             <View className="px-5 mb-5">
-              <Text className="text-brand-muted text-xs font-semibold tracking-widest uppercase mb-3">
+              <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-3">
                 Detected Rooms — {selectedRooms.length} selected
               </Text>
               <View className="gap-2">
@@ -402,22 +382,22 @@ export default function DesignUploadScreen() {
                     <TouchableOpacity
                       key={room.name}
                       onPress={() => toggleRoom(room.name)}
-                      className={`flex-row items-center gap-3 p-3.5 rounded-xl border ${isOn ? "border-brand-accent bg-brand-accent/10" : "border-white/10 bg-brand-mid"}`}
+                      className={`flex-row items-center gap-3 p-3.5 rounded-xl border ${isOn ? "border-terracotta bg-terracotta/10" : "border-charcoal/10 bg-white"}`}
                       activeOpacity={0.7}
                     >
                       <View className="flex-1">
-                        <Text className={`text-sm font-medium ${isOn ? "text-brand-accent" : "text-white"}`}>{room.name}</Text>
+                        <Text className={`text-sm font-sans ${isOn ? "text-terracotta" : "text-charcoal"}`}>{room.name}</Text>
                         {room.estimated_sqft && (
-                          <Text className="text-brand-muted text-xs mt-0.5">~{room.estimated_sqft} sqft</Text>
+                          <Text className="text-charcoal/50 text-xs mt-0.5 font-sans">~{room.estimated_sqft} sqft</Text>
                         )}
                       </View>
                       {room.is_wet_area && (
-                        <View className="bg-blue-900/30 border border-blue-500/30 rounded-full px-2 py-0.5">
-                          <Text className="text-blue-400 text-xs">wet</Text>
+                        <View className="bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5">
+                          <Text className="text-blue-600 text-xs font-sans">wet</Text>
                         </View>
                       )}
-                      <View className={`w-6 h-6 rounded-full border-2 items-center justify-center ${isOn ? "border-brand-accent bg-brand-accent" : "border-white/20"}`}>
-                        {isOn && <Ionicons name="checkmark" size={14} color="#1A1A2E" />}
+                      <View className={`w-6 h-6 rounded-full border-2 items-center justify-center ${isOn ? "border-terracotta bg-terracotta" : "border-charcoal/20"}`}>
+                        {isOn && <Ionicons name="checkmark" size={14} color="#fdfcf8" />}
                       </View>
                     </TouchableOpacity>
                   );
@@ -425,71 +405,67 @@ export default function DesignUploadScreen() {
               </View>
             </View>
 
-            {/* Project type */}
             <View className="px-5 mb-5">
-              <Text className="text-brand-muted text-xs font-semibold tracking-widest uppercase mb-3">Property Type</Text>
+              <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-3">Property Type</Text>
               <View className="flex-row gap-2 flex-wrap">
                 {PROJECT_TYPES.map((pt) => (
                   <TouchableOpacity
                     key={pt.key}
                     onPress={() => setProjectType(pt.key)}
-                    className={`px-4 py-2.5 rounded-xl border ${projectType === pt.key ? "border-brand-accent bg-brand-accent/10" : "border-white/10 bg-brand-mid"}`}
+                    className={`px-4 py-2.5 rounded-xl border ${projectType === pt.key ? "border-terracotta bg-terracotta/10" : "border-charcoal/10 bg-white"}`}
                     activeOpacity={0.7}
                   >
-                    <Text className={`text-sm font-medium ${projectType === pt.key ? "text-brand-accent" : "text-white"}`}>{pt.label}</Text>
+                    <Text className={`text-sm font-sans ${projectType === pt.key ? "text-terracotta" : "text-charcoal"}`}>{pt.label}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </View>
 
-            {/* Area */}
             <View className="px-5 mb-5">
-              <Text className="text-brand-muted text-xs font-semibold tracking-widest uppercase mb-2">Estimated Area (sqft)</Text>
+              <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-2">Estimated Area (sqft)</Text>
               <TextInput
-                className="bg-brand-mid text-white rounded-xl px-4 py-3.5 border border-white/10"
+                className="bg-white text-charcoal rounded-xl px-4 py-3.5 border border-charcoal/10 font-sans"
                 placeholder="e.g. 950"
-                placeholderTextColor="#8892A4"
+                placeholderTextColor="#999"
                 keyboardType="numeric"
                 value={totalSqft}
                 onChangeText={setTotalSqft}
               />
             </View>
 
-            {/* Structural features */}
             {analysis.structural_features.length > 0 && (
               <View className="px-5 mb-5">
-                <Text className="text-brand-muted text-xs font-semibold tracking-widest uppercase mb-2">Structural Notes</Text>
+                <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-2">Structural Notes</Text>
                 <View className="flex-row flex-wrap gap-2">
                   {analysis.structural_features.map((feat) => (
-                    <View key={feat} className="bg-brand-mid border border-white/10 rounded-full px-3 py-1">
-                      <Text className="text-white text-xs">{feat}</Text>
+                    <View key={feat} className="bg-white border border-charcoal/10 rounded-full px-3 py-1">
+                      <Text className="text-charcoal text-xs font-sans">{feat}</Text>
                     </View>
                   ))}
                 </View>
               </View>
             )}
 
-            {/* Flags */}
             {analysis.flags.length > 0 && (
-              <View className="mx-5 bg-yellow-900/20 border border-yellow-500/20 rounded-xl p-3 gap-1.5">
+              <View className="mx-5 bg-yellow-50 border border-yellow-200 rounded-xl p-3 gap-1.5">
                 {analysis.flags.map((flag) => (
                   <View key={flag} className="flex-row gap-2 items-start">
-                    <Ionicons name="alert-circle-outline" size={14} color="#facc15" style={{ marginTop: 1 }} />
-                    <Text className="text-yellow-400/80 text-xs flex-1">{flag}</Text>
+                    <Ionicons name="alert-circle-outline" size={14} color="#ca8a04" style={{ marginTop: 1 }} />
+                    <Text className="text-yellow-700 text-xs flex-1 font-sans">{flag}</Text>
                   </View>
                 ))}
               </View>
             )}
           </ScrollView>
 
-          <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-brand-dark border-t border-white/10">
+          <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-off-white border-t border-charcoal/10">
             <TouchableOpacity
               onPress={() => setStep("style")}
               disabled={selectedRooms.length === 0}
-              className={`py-4 rounded-xl items-center flex-row justify-center gap-2 ${selectedRooms.length > 0 ? "bg-brand-accent" : "bg-brand-mid"}`}
+              className={`py-4 rounded-xl items-center flex-row justify-center gap-2 ${selectedRooms.length > 0 ? "bg-terracotta" : "bg-charcoal/10"}`}
               activeOpacity={0.8}
             >
-              <Text className={`font-bold text-base ${selectedRooms.length > 0 ? "text-brand-dark" : "text-brand-muted"}`}>
+              <Text className={`font-sans-bold text-base ${selectedRooms.length > 0 ? "text-off-white" : "text-charcoal/40"}`}>
                 Pick a Style →
               </Text>
             </TouchableOpacity>
@@ -497,12 +473,10 @@ export default function DesignUploadScreen() {
         </KeyboardAvoidingView>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════ */}
-      {/* STYLE PICKER                                                        */}
-      {/* ════════════════════════════════════════════════════════════════════ */}
+      {/* ═══ STYLE PICKER ═══ */}
       {step === "style" && (
         <>
-          <Text className="text-brand-muted text-sm px-5 mb-4">
+          <Text className="text-charcoal/50 text-sm font-sans px-5 mb-4">
             Select a style for your AI-generated design render.
           </Text>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
@@ -514,23 +488,23 @@ export default function DesignUploadScreen() {
                     key={style.id}
                     onPress={() => setSelectedStyle(style)}
                     style={{ width: (Dimensions.get("window").width - 52) / 2 }}
-                    className={`rounded-2xl border p-4 ${isSelected ? "border-brand-accent bg-brand-accent/10" : "border-white/10 bg-brand-mid"}`}
+                    className={`rounded-2xl border p-4 ${isSelected ? "border-terracotta bg-terracotta/10" : "border-charcoal/10 bg-white"}`}
                     activeOpacity={0.75}
                   >
                     {isSelected && (
-                      <View className="absolute top-3 right-3 w-5 h-5 rounded-full bg-brand-accent items-center justify-center">
-                        <Ionicons name="checkmark" size={12} color="#1A1A2E" />
+                      <View className="absolute top-3 right-3 w-5 h-5 rounded-full bg-terracotta items-center justify-center">
+                        <Ionicons name="checkmark" size={12} color="#fdfcf8" />
                       </View>
                     )}
                     <View className="flex-row gap-1 mb-3">
                       {style.colors.map((color) => (
-                        <View key={color} style={{ backgroundColor: color, width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: "rgba(255,255,255,0.15)" }} />
+                        <View key={color} style={{ backgroundColor: color, width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: "rgba(26,26,26,0.1)" }} />
                       ))}
                     </View>
-                    <Text className={`font-bold text-sm mb-0.5 ${isSelected ? "text-brand-accent" : "text-white"}`}>
+                    <Text className={`font-sans-bold text-sm mb-0.5 ${isSelected ? "text-terracotta" : "text-charcoal"}`}>
                       {style.name}
                     </Text>
-                    <Text className="text-brand-muted text-xs leading-relaxed" numberOfLines={2}>
+                    <Text className="text-charcoal/50 text-xs font-sans leading-relaxed" numberOfLines={2}>
                       {style.description}
                     </Text>
                   </TouchableOpacity>
@@ -539,15 +513,15 @@ export default function DesignUploadScreen() {
             </View>
           </ScrollView>
 
-          <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-brand-dark border-t border-white/10">
+          <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-off-white border-t border-charcoal/10">
             <TouchableOpacity
               onPress={handleGenerate}
               disabled={!selectedStyle}
-              className={`py-4 rounded-xl items-center flex-row justify-center gap-2 ${selectedStyle ? "bg-brand-accent" : "bg-brand-mid"}`}
+              className={`py-4 rounded-xl items-center flex-row justify-center gap-2 ${selectedStyle ? "bg-terracotta" : "bg-charcoal/10"}`}
               activeOpacity={0.8}
             >
-              <Ionicons name="color-wand-outline" size={18} color={selectedStyle ? "#1A1A2E" : "#8892A4"} />
-              <Text className={`font-bold text-base ${selectedStyle ? "text-brand-dark" : "text-brand-muted"}`}>
+              <Ionicons name="color-wand-outline" size={18} color={selectedStyle ? "#fdfcf8" : "#999"} />
+              <Text className={`font-sans-bold text-base ${selectedStyle ? "text-off-white" : "text-charcoal/40"}`}>
                 Generate Design →
               </Text>
             </TouchableOpacity>
@@ -555,32 +529,27 @@ export default function DesignUploadScreen() {
         </>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════ */}
-      {/* RESULT                                                              */}
-      {/* ════════════════════════════════════════════════════════════════════ */}
+      {/* ═══ RESULT ═══ */}
       {step === "result" && designUrl && (
         <>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
-            {/* Design image */}
-            <View className="mx-5 mt-2 mb-4 rounded-2xl overflow-hidden border border-brand-accent/40">
+            <View className="mx-5 mt-2 mb-4 rounded-2xl overflow-hidden border border-terracotta/40">
               <Image source={{ uri: designUrl }} style={{ width: IMG_SIZE, height: IMG_SIZE }} resizeMode="cover" />
             </View>
 
-            {/* Style badge row */}
             <View className="mx-5 mb-4 flex-row items-center gap-2">
               <View className="flex-row gap-1">
                 {selectedStyle?.colors.map((c) => (
-                  <View key={c} style={{ backgroundColor: c, width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }} />
+                  <View key={c} style={{ backgroundColor: c, width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: "rgba(26,26,26,0.1)" }} />
                 ))}
               </View>
-              <Text className="text-brand-accent font-semibold text-sm ml-1">{selectedStyle?.name}</Text>
-              <Text className="text-brand-muted text-xs">· Flux 1</Text>
+              <Text className="text-terracotta font-sans-semibold text-sm ml-1">{selectedStyle?.name}</Text>
+              <Text className="text-charcoal/50 text-xs font-sans">· Flux 1</Text>
             </View>
 
-            {/* Summary */}
             {analysis && (
-              <View className="mx-5 bg-brand-mid border border-white/10 rounded-2xl p-4">
-                <Text className="text-brand-muted text-xs font-semibold tracking-widest uppercase mb-3">Floor Plan Summary</Text>
+              <View className="mx-5 bg-white border border-charcoal/10 rounded-2xl p-4">
+                <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-3">Floor Plan Summary</Text>
                 <View className="gap-1.5">
                   {[
                     { label: "Layout",  value: analysis.layout_type },
@@ -589,8 +558,8 @@ export default function DesignUploadScreen() {
                     { label: "Type",    value: projectType.toUpperCase() },
                   ].map(({ label, value }) => (
                     <View key={label} className="flex-row gap-2">
-                      <Text className="text-brand-muted text-xs w-14 flex-shrink-0">{label}</Text>
-                      <Text className="text-white text-xs flex-1">{value}</Text>
+                      <Text className="text-charcoal/50 text-xs w-14 flex-shrink-0 font-sans">{label}</Text>
+                      <Text className="text-charcoal text-xs flex-1 font-sans">{value}</Text>
                     </View>
                   ))}
                 </View>
@@ -598,21 +567,21 @@ export default function DesignUploadScreen() {
             )}
           </ScrollView>
 
-          <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-brand-dark border-t border-white/10 gap-3">
+          <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-off-white border-t border-charcoal/10 gap-3">
             <TouchableOpacity
               onPress={handleStartQuotation}
-              className="bg-brand-accent py-4 rounded-xl items-center flex-row justify-center gap-2"
+              className="bg-terracotta py-4 rounded-xl items-center flex-row justify-center gap-2"
               activeOpacity={0.8}
             >
-              <Ionicons name="calculator-outline" size={18} color="#1A1A2E" />
-              <Text className="text-brand-dark font-bold text-base">Start Quotation</Text>
+              <Ionicons name="calculator-outline" size={18} color="#fdfcf8" />
+              <Text className="text-off-white font-sans-bold text-base">Start Quotation</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setStep("style")}
-              className="bg-brand-mid py-3.5 rounded-xl items-center border border-white/10"
+              className="bg-white py-3.5 rounded-xl items-center border border-charcoal/10"
               activeOpacity={0.8}
             >
-              <Text className="text-white font-medium">Try a Different Style</Text>
+              <Text className="text-charcoal font-sans">Try a Different Style</Text>
             </TouchableOpacity>
           </View>
         </>

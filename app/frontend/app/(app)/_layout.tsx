@@ -7,7 +7,7 @@ export default function AppLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: "#1A1A2E" },
+          contentStyle: { backgroundColor: "#fdfcf8" },
         }}
       />
     </QuoteProvider>
