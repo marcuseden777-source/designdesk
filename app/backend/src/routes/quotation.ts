@@ -8,6 +8,7 @@ import {
   listQuotations,
 } from "../services/quotationService";
 import { generatePDF } from "../services/pdfService";
+import { CreateQuotationSchema } from "../lib/schemas";
 
 const router = Router();
 
@@ -33,12 +34,13 @@ router.get("/", requireAuth, async (req: Request, res: Response): Promise<void> 
 
 // POST /api/quotation — create a new quotation draft
 router.post("/", requireAuth, async (req: Request, res: Response): Promise<void> => {
-  const { client_name, project_address, project_type, total_sqft, rooms, line_items, design_session_id } = req.body;
-
-  if (!client_name || !project_address || !project_type || !total_sqft || !rooms?.length || !line_items?.length) {
-    res.status(400).json({ error: "Missing required fields" });
+  const parsed = CreateQuotationSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.errors.map((e) => e.message).join(", ") });
     return;
   }
+
+  const { client_name, project_address, project_type, total_sqft, rooms, line_items, design_session_id } = parsed.data;
 
   try {
     const quotation = await createQuotation(req.userId, {

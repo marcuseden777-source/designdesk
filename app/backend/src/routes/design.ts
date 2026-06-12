@@ -5,17 +5,19 @@ import { generateDesign } from "../services/designGenerationService";
 import { uploadBuffer } from "../lib/s3";
 import { uploadToSupabaseStorage, isSupabaseStorageConfigured } from "../lib/supabaseStorage";
 import { supabaseAdmin } from "../lib/supabase";
+import { GenerateDesignSchema } from "../lib/schemas";
 
 const router = Router();
 
 // POST /api/design/generate
 router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Response): Promise<void> => {
-  const { session_id, style, selected_rooms, project_type, total_sqft } = req.body;
-
-  if (!session_id || !style || !selected_rooms?.length || !project_type) {
-    res.status(400).json({ error: "Missing required fields: session_id, style, selected_rooms, project_type" });
+  const parsed = GenerateDesignSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.errors.map((e) => e.message).join(", ") });
     return;
   }
+
+  const { session_id, style, selected_rooms, project_type, total_sqft } = parsed.data;
 
   try {
     // Fetch floor plan analysis from session

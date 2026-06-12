@@ -1,4 +1,7 @@
 import "dotenv/config";
+import { validateEnv } from "./lib/validateEnv";
+validateEnv();
+
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -17,17 +20,25 @@ app.use(helmet());
 
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-  : ["http://localhost:8081", "http://localhost:19006"];
+  : [];
+
+const DEFAULT_ORIGINS = [
+  "http://localhost:8081",
+  "http://localhost:3001",
+  "http://localhost:19006",
+  "https://designdesk.onrender.com",
+];
 
 app.use(
   cors({
     origin(origin, callback) {
       // Allow requests with no origin (mobile apps, curl, health checks)
-      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`Origin ${origin} not allowed by CORS`));
-      }
+      if (!origin) return callback(null, true);
+      // Check explicit list
+      if ([...DEFAULT_ORIGINS, ...ALLOWED_ORIGINS].includes(origin)) return callback(null, true);
+      // Allow any *.vercel.app preview deployment
+      if (origin.endsWith(".vercel.app")) return callback(null, true);
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
     },
     credentials: true,
   })
