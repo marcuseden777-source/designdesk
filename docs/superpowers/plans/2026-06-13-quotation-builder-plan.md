@@ -37,8 +37,13 @@ optional `measurement` and `breakdown` carried in `notes`/future columns).
 - Backend `POST /api/quotation/explain` → one-paragraph item rationale (prose;
   reliable on any model).
 
-**Phase 2** — Template builder (MCQ/fill-blank) to add/edit library items +
-persist to backend; product breakdown editor (Composite).
+**Phase 2 (done)** — `lib/quoteLibrary.ts` (Repository): seed + custom templates,
+AsyncStorage persistence. `quote/new-item.tsx` template builder (create/edit):
+MCQ category/unit/icon, photo picker, tier editor, Composite breakdown editor,
+default quantity, AI-generated default description. Builder loads from the
+repository and refreshes on focus; custom cards are editable (pencil/long-press),
+deletable. *Deferred:* backend sync to `/api/quotation/templates` (currently
+device-local AsyncStorage).
 
 **Phase 3** — Drag-drop room/template scaffolding; Word (.docx) + editable export;
-saved per-client "quote templates".
+saved per-client "quote templates"; backend template sync (cross-device).

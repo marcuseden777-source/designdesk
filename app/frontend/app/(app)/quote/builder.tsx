@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   View,
   ScrollView,
@@ -6,23 +6,22 @@ import {
   Modal,
   Image,
   PanResponder,
-  Animated,
   ActivityIndicator,
 } from "react-native";
 import { Text } from "@/components/Text";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuote, getSubtotal, formatSGD } from "@/lib/quoteContext";
 import { api } from "@/lib/api";
 import {
-  SEED_TEMPLATES,
   QUOTE_CATEGORIES,
   UNIT_LABEL,
   categoryOf,
   type QuoteItemTemplate,
   type QuoteTier,
 } from "@/lib/quoteTemplates";
+import { loadTemplates, type LibraryTemplate } from "@/lib/quoteLibrary";
 
 /* -------------------------------------------------------------------------- */
 /*  Measurement control — drag left/right to set sqft / ft-run, or count nos   */
@@ -268,11 +267,25 @@ function AddItemSheet({
 /*  Library card                                                               */
 /* -------------------------------------------------------------------------- */
 
-function LibraryCard({ template, onPress }: { template: QuoteItemTemplate; onPress: () => void }) {
+function LibraryCard({
+  template,
+  onPress,
+  onEdit,
+}: {
+  template: LibraryTemplate;
+  onPress: () => void;
+  onEdit?: () => void;
+}) {
   const cat = categoryOf(template.category);
   const fromRate = Math.min(...template.tiers.map((t) => t.rate));
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.85} className="w-[48%] mb-4">
+    <TouchableOpacity
+      onPress={onPress}
+      onLongPress={template.isCustom ? onEdit : undefined}
+      delayLongPress={250}
+      activeOpacity={0.85}
+      className="w-[48%] mb-4"
+    >
       <View className="rounded-2xl overflow-hidden bg-off-white border border-charcoal/10">
         {/* image / icon tile */}
         <View className="h-28 items-center justify-center" style={{ backgroundColor: cat.tint + "1A" }}>
@@ -281,9 +294,18 @@ function LibraryCard({ template, onPress }: { template: QuoteItemTemplate; onPre
           ) : (
             <Ionicons name={template.icon} size={40} color={cat.tint} />
           )}
-          <View className="absolute top-2 right-2 w-7 h-7 rounded-full bg-off-white/90 items-center justify-center">
-            <Ionicons name="add" size={18} color="#b85c38" />
-          </View>
+          {template.isCustom ? (
+            <TouchableOpacity
+              onPress={onEdit}
+              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-off-white/90 items-center justify-center"
+            >
+              <Ionicons name="pencil" size={14} color="#b85c38" />
+            </TouchableOpacity>
+          ) : (
+            <View className="absolute top-2 right-2 w-7 h-7 rounded-full bg-off-white/90 items-center justify-center">
+              <Ionicons name="add" size={18} color="#b85c38" />
+            </View>
+          )}
         </View>
         <View className="p-3">
           <Text className="text-charcoal font-sans-semibold" numberOfLines={1}>
@@ -308,10 +330,19 @@ export default function QuoteBuilderScreen() {
   const [catFilter, setCatFilter] = useState<string | null>(null);
   const [active, setActive] = useState<QuoteItemTemplate | null>(null);
   const [justAdded, setJustAdded] = useState<string | null>(null);
+  const [allTemplates, setAllTemplates] = useState<LibraryTemplate[]>([]);
+
+  // Reload from the library whenever the screen regains focus, so items created
+  // in the template builder appear immediately.
+  useFocusEffect(
+    useCallback(() => {
+      loadTemplates().then(setAllTemplates);
+    }, [])
+  );
 
   const templates = useMemo(
-    () => (catFilter ? SEED_TEMPLATES.filter((t) => t.category === catFilter) : SEED_TEMPLATES),
-    [catFilter]
+    () => (catFilter ? allTemplates.filter((t) => t.category === catFilter) : allTemplates),
+    [catFilter, allTemplates]
   );
 
   const subtotal = getSubtotal(state.line_items);
@@ -387,13 +418,21 @@ export default function QuoteBuilderScreen() {
       <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
         <View className="flex-row flex-wrap justify-between">
           {templates.map((t) => (
-            <LibraryCard key={t.id} template={t} onPress={() => setActive(t)} />
+            <LibraryCard
+              key={t.id}
+              template={t}
+              onPress={() => setActive(t)}
+              onEdit={() =>
+                // typed-routes union regenerates to include /quote/new-item on next Expo run
+                router.push({ pathname: "/quote/new-item", params: { id: t.id } } as any)
+              }
+            />
           ))}
         </View>
 
-        {/* Phase-2 hook: build a new reusable item */}
+        {/* Create a new reusable library item */}
         <TouchableOpacity
-          onPress={() => router.push("/quote/rooms")}
+          onPress={() => router.push("/quote/new-item" as any)}
           className="mt-1 mb-2 rounded-2xl border border-dashed border-charcoal/25 py-5 items-center justify-center"
         >
           <Ionicons name="add-circle-outline" size={26} color="#1a1a1a88" />
