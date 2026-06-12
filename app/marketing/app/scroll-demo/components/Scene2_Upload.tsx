@@ -250,7 +250,7 @@ export function Scene2Overlay() {
 
   return (
     <div
-      className="sticky top-0 h-screen transition-opacity duration-300"
+      className="sticky top-0 h-[100svh] transition-opacity duration-300"
       style={{ opacity: inScene ? 1 : 0 }}
     >
       <div className="relative flex h-full flex-col items-center justify-between px-4 pb-8 pt-8 md:px-6 md:pb-10 md:pt-12">

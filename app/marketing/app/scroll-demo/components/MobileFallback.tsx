@@ -81,7 +81,7 @@ function FallbackCard({
   return (
     <section
       ref={ref}
-      className={`relative flex h-screen w-full snap-start flex-col items-center justify-center overflow-hidden bg-gradient-to-br px-8 text-center ${card.gradient}`}
+      className={`relative flex h-[100dvh] w-full snap-start flex-col items-center justify-center overflow-hidden bg-gradient-to-br px-8 text-center ${card.gradient}`}
     >
       {card.image && (
         <div

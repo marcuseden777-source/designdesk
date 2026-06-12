@@ -129,7 +129,7 @@ export function Scene7Overlay() {
   });
 
   return (
-    <div className="sticky top-0 flex h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+    <div className="sticky top-0 flex h-[100svh] flex-col items-center justify-center gap-4 px-6 text-center">
       <p className="text-3xl font-semibold text-white" style={show(0.88)}>
         Your design.
       </p>

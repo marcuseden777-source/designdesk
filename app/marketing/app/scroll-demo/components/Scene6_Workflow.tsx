@@ -205,7 +205,7 @@ export function Scene6Overlay() {
       {/* Desktop: pinned split comparison */}
       <div
         ref={pinRef}
-        className="hidden h-screen flex-col justify-center px-8 md:flex lg:px-20"
+        className="hidden h-[100svh] flex-col justify-center px-8 md:flex lg:px-20"
       >
         <h2 className="mb-10 text-center text-3xl font-bold text-white lg:text-5xl">
           Two ways to get there.

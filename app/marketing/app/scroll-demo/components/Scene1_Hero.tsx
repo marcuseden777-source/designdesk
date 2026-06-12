@@ -132,7 +132,7 @@ export function Scene1Overlay() {
 
   return (
     <div
-      className="sticky top-0 flex h-screen flex-col items-center justify-center px-6 text-center"
+      className="sticky top-0 flex h-[100svh] flex-col items-center justify-center px-6 text-center"
       style={{ opacity: fade, visibility: fade <= 0 ? "hidden" : "visible" }}
     >
       <p className="mb-5 text-xs font-semibold uppercase tracking-[0.45em] text-teal-400">

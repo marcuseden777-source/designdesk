@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import ScrollExperience from "./scroll-demo/ScrollExperience";
 
 export default function Home() {
-  redirect("/scroll-demo");
+  return <ScrollExperience />;
 }

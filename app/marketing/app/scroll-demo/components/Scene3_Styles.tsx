@@ -163,14 +163,15 @@ export function Scene3Overlay() {
 
   return (
     <div
-      className="sticky top-0 flex h-screen flex-col items-center justify-between px-6 py-16 transition-opacity duration-300 md:py-20"
+      className="sticky top-0 flex h-[100svh] flex-col items-center justify-between px-6 pb-12 pt-20 transition-opacity duration-300 md:py-20"
       style={{ opacity: inScene ? 1 : 0 }}
     >
       <div className="text-center">
-        <h2 className="text-4xl font-black text-white md:text-6xl">
-          20 styles. Your plan.
+        <h2 className="text-3xl font-black leading-tight text-white sm:text-4xl md:text-6xl">
+          20 styles.{" "}
+          <span className="whitespace-nowrap">Your plan.</span>
         </h2>
-        <p className="mt-3 text-base text-slate-300 md:text-xl">
+        <p className="mx-auto mt-3 max-w-xs text-sm text-slate-300 sm:max-w-none sm:text-base md:text-xl">
           Real floor plans, restyled by DesignDesk in seconds.
         </p>
       </div>
@@ -185,8 +186,8 @@ export function Scene3Overlay() {
         >
           {showingAfter ? "✦ AI-styled" : "Original plan"}
         </div>
-        <div className="flex items-center gap-4 rounded-full border border-white/10 bg-black/40 px-6 py-2.5 backdrop-blur-sm">
-          <p className="text-base font-semibold text-white md:text-lg">
+        <div className="flex items-center gap-3 rounded-full border border-white/10 bg-black/40 px-5 py-2.5 backdrop-blur-sm md:gap-4 md:px-6">
+          <p className="text-sm font-semibold text-white md:text-lg">
             {WAVE_STYLES[wave].name}
           </p>
           <div className="flex gap-1.5">
@@ -199,7 +200,7 @@ export function Scene3Overlay() {
               />
             ))}
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="hidden text-xs text-slate-400 sm:block">
             {wave * CARDS_PER_WAVE + 1}–{(wave + 1) * CARDS_PER_WAVE} of 20
           </p>
         </div>

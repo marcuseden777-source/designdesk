@@ -129,6 +129,11 @@ export default function ScrollCanvas() {
   const scrollProgress = useScrollProgress();
   const activeScene = activeSceneIndex(scrollProgress);
 
+  // Cap device pixel ratio lower on phones to keep the GPU comfortable.
+  const isMobile =
+    typeof window !== "undefined" && window.innerWidth < 768;
+  const dprMax = isMobile ? 1.5 : 2;
+
   return (
     <SceneContext.Provider value={{ activeScene, scrollProgress }}>
       <Canvas
@@ -137,11 +142,11 @@ export default function ScrollCanvas() {
           top: 0,
           left: 0,
           width: "100vw",
-          height: "100vh",
+          height: "100dvh",
           zIndex: 0,
         }}
         camera={{ position: [0, 2, 8], fov: 50 }}
-        dpr={[1, 2]}
+        dpr={[1, dprMax]}
         performance={{ min: 0.5 }}
       >
         {/* Transparent canvas — the warm home backdrop shows through */}

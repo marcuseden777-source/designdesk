@@ -118,7 +118,7 @@ export function Scene5Overlay() {
 
   return (
     <div
-      className="sticky top-0 flex h-screen items-center justify-center px-6 transition-opacity duration-300"
+      className="sticky top-0 flex h-[100svh] items-center justify-center px-6 transition-opacity duration-300"
       style={{ opacity: inScene ? 1 : 0 }}
     >
       <div
