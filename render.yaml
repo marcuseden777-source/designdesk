@@ -12,7 +12,8 @@ services:
       - key: PORT
         value: 10000
       - key: ALLOWED_ORIGINS
-        value: https://frontend-lzba1gdmv-marcuss-projects-2f8e99c6.vercel.app,https://designdesk.vercel.app
+        value: https://designdesk-iota.vercel.app,https://designdesk.vercel.app
+        
       # Set these manually in Render dashboard (sensitive):
       # SUPABASE_URL
       # SUPABASE_SERVICE_ROLE_KEY
