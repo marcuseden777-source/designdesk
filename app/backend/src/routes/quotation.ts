@@ -8,6 +8,7 @@ import {
   listQuotations,
   updateQuotation,
   updateQuotationStatus,
+  explainQuoteItem,
 } from "../services/quotationService";
 import { generatePDF } from "../services/pdfService";
 import { CreateQuotationSchema } from "../lib/schemas";
@@ -137,6 +138,29 @@ router.get("/:id/pdf", heavyLimiter, requireAuth, async (req: Request, res: Resp
   } catch (err: any) {
     Sentry.captureException(err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/quotation/explain — AI-generated explanation for a quote line item
+router.post("/explain", requireAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, category, tier, unit, amount, rate } = req.body ?? {};
+    if (!name || typeof name !== "string") {
+      res.status(400).json({ error: "name is required" });
+      return;
+    }
+    const explanation = await explainQuoteItem({
+      name,
+      category: String(category ?? ""),
+      tier: String(tier ?? ""),
+      unit: String(unit ?? ""),
+      amount: Number(amount) || 0,
+      rate: Number(rate) || 0,
+    });
+    res.json({ explanation });
+  } catch (err: any) {
+    Sentry.captureException(err);
+    res.status(500).json({ error: err.message ?? "Explanation failed" });
   }
 });
 

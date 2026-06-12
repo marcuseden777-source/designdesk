@@ -46,6 +46,20 @@ export const api = {
       body: JSON.stringify({ status }),
     }),
 
+  // AI — generate a client-friendly explanation for a quote line item
+  explainQuoteItem: (payload: {
+    name: string;
+    category: string;
+    tier: string;
+    unit: string;
+    amount: number;
+    rate: number;
+  }) =>
+    request<{ explanation: string }>("/api/quotation/explain", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }).then((r) => r.explanation),
+
   // PDF — returns a blob URL for sharing
   getPdfUrl: (id: string) => `${BASE_URL}/api/quotation/${id}/pdf`,
 

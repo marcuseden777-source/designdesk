@@ -239,3 +239,38 @@ export async function updateQuotationStatus(
   if (error) throw error;
   return data;
 }
+
+// ─── AI explanation for a quote line item (prose; reliable on any model) ──────
+export async function explainQuoteItem(p: {
+  name: string;
+  category: string;
+  tier: string;
+  unit: string;
+  amount: number;
+  rate: number;
+}): Promise<string> {
+  const apiKey = process.env.NVIDIA_API_KEY;
+  if (!apiKey) throw new Error("NVIDIA_API_KEY is not configured.");
+
+  const prompt =
+    `You are an interior designer writing a client quotation. In 1–2 concise, ` +
+    `professional, client-friendly sentences, explain what this line item covers ` +
+    `and why it is worthwhile. No markdown, no preamble, no bullet points.\n\n` +
+    `Item: ${p.name}\nCategory: ${p.category}\nTier / finish: ${p.tier}\n` +
+    `Scope: ${p.amount} ${p.unit} at S$${p.rate} per ${p.unit}.`;
+
+  const res = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: process.env.QUOTE_EXPLAIN_MODEL ?? "meta/llama-3.1-8b-instruct",
+      max_tokens: 200,
+      temperature: 0.5,
+      messages: [{ role: "user", content: prompt }],
+    }),
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!res.ok) throw new Error(`Explanation failed (NIM ${res.status}).`);
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  return (data.choices?.[0]?.message?.content ?? "").trim();
+}

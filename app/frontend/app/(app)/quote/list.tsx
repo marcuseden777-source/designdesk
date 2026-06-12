@@ -185,12 +185,21 @@ export default function QuoteListScreen() {
             )}
           </View>
         </View>
-        <TouchableOpacity
-          onPress={() => router.push("/(app)/quote/new")}
-          className="w-9 h-9 bg-terracotta/10 border border-terracotta/30 rounded-full items-center justify-center"
-        >
-          <Ionicons name="add" size={20} color="#b85c38" />
-        </TouchableOpacity>
+        <View className="flex-row items-center gap-2">
+          <TouchableOpacity
+            onPress={() => router.push("/(app)/quote/builder")}
+            className="flex-row items-center gap-1.5 h-9 px-3 bg-charcoal rounded-full"
+          >
+            <Ionicons name="construct-outline" size={16} color="#fdfcf8" />
+            <Text className="text-off-white text-sm font-sans-semibold">Build</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/(app)/quote/new")}
+            className="w-9 h-9 bg-terracotta/10 border border-terracotta/30 rounded-full items-center justify-center"
+          >
+            <Ionicons name="add" size={20} color="#b85c38" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* ── Content ── */}
