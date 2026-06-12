@@ -38,6 +38,13 @@ export const api = {
     request<{ id: string }>("/api/quotation", { method: "POST", body: JSON.stringify(payload) }),
   getQuotation: (id: string) => request<any>(`/api/quotation/${id}`),
   listQuotations: () => request<any[]>("/api/quotation"),
+  updateQuotation: (id: string, payload: Omit<CreateQuotationPayload, "design_session_id">) =>
+    request<any>(`/api/quotation/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  updateQuotationStatus: (id: string, status: "draft" | "sent" | "accepted" | "rejected") =>
+    request<{ id: string; status: string }>(`/api/quotation/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
 
   // PDF — returns a blob URL for sharing
   getPdfUrl: (id: string) => `${BASE_URL}/api/quotation/${id}/pdf`,

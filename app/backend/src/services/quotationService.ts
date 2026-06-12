@@ -127,3 +127,115 @@ export async function listQuotations(designerId: string) {
   if (error) throw error;
   return data;
 }
+
+// ─── Update quotation (draft only) ──────────────────────────────────────────
+
+export async function updateQuotation(
+  quoteId: string,
+  designerId: string,
+  payload: {
+    client_name: string;
+    project_address: string;
+    project_type: string;
+    total_sqft: number;
+    rooms: string[];
+    line_items: QuoteLineItem[];
+  }
+): Promise<Quotation> {
+  // Verify ownership and draft status
+  const { data: existing, error: fetchError } = await supabaseAdmin
+    .from("quotations")
+    .select("status")
+    .eq("id", quoteId)
+    .eq("designer_id", designerId)
+    .single();
+
+  if (fetchError || !existing) throw new Error("Quotation not found");
+  if (existing.status !== "draft") throw new Error("Only draft quotations can be edited");
+
+  const subtotal = payload.line_items.reduce((sum, i) => sum + i.total_amount, 0);
+  const gst_amount = Math.round(subtotal * 0.09 * 100) / 100;
+  const grand_total = Math.round((subtotal + gst_amount) * 100) / 100;
+
+  // Update the quotation header
+  const { error: updateError } = await supabaseAdmin
+    .from("quotations")
+    .update({
+      client_name: payload.client_name,
+      project_address: payload.project_address,
+      project_type: payload.project_type,
+      total_sqft: payload.total_sqft,
+      rooms: payload.rooms,
+      subtotal,
+      gst_amount,
+      grand_total,
+    })
+    .eq("id", quoteId);
+
+  if (updateError) throw updateError;
+
+  // Replace all line items: delete old, insert new
+  const { error: deleteError } = await supabaseAdmin
+    .from("quote_line_items")
+    .delete()
+    .eq("quote_id", quoteId);
+
+  if (deleteError) throw deleteError;
+
+  const lineItemRows = payload.line_items.map((item) => ({
+    quote_id: quoteId,
+    item_id: item.item_id,
+    quantity: item.quantity,
+    unit_rate: item.unit_rate,
+    total_amount: item.total_amount,
+    selected_tier: item.selected_tier,
+    notes: item.notes ?? null,
+    room: item.room ?? null,
+  }));
+
+  const { error: insertError } = await supabaseAdmin
+    .from("quote_line_items")
+    .insert(lineItemRows);
+
+  if (insertError) throw insertError;
+
+  return getQuotation(quoteId, designerId);
+}
+
+// ─── Update quotation status ─────────────────────────────────────────────────
+
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  draft: ["sent"],
+  sent: ["accepted", "rejected"],
+  rejected: ["draft"],  // Allow re-opening rejected quotes
+};
+
+export async function updateQuotationStatus(
+  quoteId: string,
+  designerId: string,
+  newStatus: string
+): Promise<{ id: string; status: string }> {
+  const { data: existing, error: fetchError } = await supabaseAdmin
+    .from("quotations")
+    .select("status")
+    .eq("id", quoteId)
+    .eq("designer_id", designerId)
+    .single();
+
+  if (fetchError || !existing) throw new Error("Quotation not found");
+
+  const allowed = VALID_TRANSITIONS[existing.status];
+  if (!allowed?.includes(newStatus)) {
+    throw new Error(`Cannot transition from "${existing.status}" to "${newStatus}"`);
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("quotations")
+    .update({ status: newStatus })
+    .eq("id", quoteId)
+    .select("id, status")
+    .single();
+
+  if (error) throw error;
+  return data;
+}

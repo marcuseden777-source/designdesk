@@ -30,10 +30,19 @@ export default function NewQuoteScreen() {
     rooms?: string;
     project_type?: string;
     sqft?: string;
+    edit_id?: string;
+    client_name?: string;
+    project_address?: string;
   }>();
 
-  const [clientName, setClientName] = useState(state.client_name);
-  const [address, setAddress] = useState(state.project_address);
+  const isEditing = !!params.edit_id;
+
+  const [clientName, setClientName] = useState(
+    params.client_name ?? state.client_name
+  );
+  const [address, setAddress] = useState(
+    params.project_address ?? state.project_address
+  );
   const [projectType, setProjectType] = useState(
     (params.project_type as typeof state.project_type) || state.project_type
   );
@@ -45,7 +54,9 @@ export default function NewQuoteScreen() {
   );
 
   useEffect(() => {
-    if (params.session_id) {
+    if (params.edit_id) {
+      dispatch({ type: "SET_EDIT_ID", edit_id: params.edit_id });
+    } else if (params.session_id) {
       dispatch({ type: "SET_SESSION_ID", design_session_id: params.session_id });
     }
     if (params.rooms) {
@@ -74,8 +85,12 @@ export default function NewQuoteScreen() {
               <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
             </TouchableOpacity>
             <View>
-              <Text className="text-charcoal/50 text-xs tracking-widest uppercase">Step 1 of 4</Text>
-              <Text className="text-charcoal text-xl font-serif">Project Details</Text>
+              <Text className="text-charcoal/50 text-xs tracking-widest uppercase">
+                {isEditing ? "Editing" : "Step 1 of 4"}
+              </Text>
+              <Text className="text-charcoal text-xl font-serif">
+                {isEditing ? "Edit Quotation" : "Project Details"}
+              </Text>
             </View>
           </View>
 

@@ -110,12 +110,29 @@ function CategorySection({ category, items }: { category: string; items: QuoteLi
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
+// ─── Status transitions ──────────────────────────────────────────────────────
+
+const NEXT_STATUS: Record<string, { action: string; target: "sent" | "accepted" | "rejected" | "draft"; icon: keyof typeof Ionicons.glyphMap; color: string }[]> = {
+  draft: [
+    { action: "Mark as Sent", target: "sent", icon: "send-outline", color: "#b85c38" },
+  ],
+  sent: [
+    { action: "Accept", target: "accepted", icon: "checkmark-circle-outline", color: "#16a34a" },
+    { action: "Reject", target: "rejected", icon: "close-circle-outline", color: "#dc2626" },
+  ],
+  rejected: [
+    { action: "Reopen as Draft", target: "draft", icon: "refresh-outline", color: "#999" },
+  ],
+  accepted: [],
+};
+
 export default function QuoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [quote, setQuote] = useState<Quotation | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -142,6 +159,34 @@ export default function QuoteDetailScreen() {
     } finally {
       setExporting(false);
     }
+  }
+
+  async function handleStatusChange(target: "draft" | "sent" | "accepted" | "rejected") {
+    if (!quote) return;
+    setTransitioning(true);
+    try {
+      const result = await api.updateQuotationStatus(quote.id, target);
+      setQuote({ ...quote, status: result.status as Quotation["status"] });
+    } catch (e: any) {
+      Alert.alert("Status Update Failed", e?.message ?? "Could not update status");
+    } finally {
+      setTransitioning(false);
+    }
+  }
+
+  function handleEdit() {
+    if (!quote) return;
+    router.push({
+      pathname: "/(app)/quote/new",
+      params: {
+        edit_id: quote.id,
+        client_name: quote.client_name,
+        project_address: quote.project_address,
+        project_type: quote.project_type,
+        sqft: String(quote.total_sqft),
+        rooms: JSON.stringify(quote.rooms),
+      },
+    });
   }
 
   if (loading) {
@@ -247,13 +292,42 @@ export default function QuoteDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* ── Sticky export button ── */}
-      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-off-white/95">
+      {/* ── Sticky action bar ── */}
+      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-off-white/95 gap-2.5">
+        {/* Status transition buttons */}
+        {(NEXT_STATUS[quote.status] ?? []).map((t) => (
+          <TouchableOpacity
+            key={t.target}
+            onPress={() => {
+              Alert.alert(
+                t.action,
+                `Change status from "${quote.status}" to "${t.target}"?`,
+                [
+                  { text: "Cancel", style: "cancel" },
+                  { text: t.action, onPress: () => handleStatusChange(t.target) },
+                ]
+              );
+            }}
+            disabled={transitioning}
+            activeOpacity={0.85}
+            style={{ backgroundColor: t.color }}
+            className="rounded-2xl py-3.5 flex-row items-center justify-center gap-2"
+          >
+            {transitioning ? (
+              <ActivityIndicator color="#fdfcf8" size="small" />
+            ) : (
+              <Ionicons name={t.icon} size={18} color="#fdfcf8" />
+            )}
+            <Text className="text-off-white text-sm font-sans-bold">{t.action}</Text>
+          </TouchableOpacity>
+        ))}
+
+        {/* Export PDF */}
         <TouchableOpacity
           onPress={handleExportPdf}
           disabled={exporting}
           activeOpacity={0.85}
-          className="bg-terracotta rounded-2xl py-4 flex-row items-center justify-center gap-2"
+          className="bg-terracotta rounded-2xl py-3.5 flex-row items-center justify-center gap-2"
         >
           {exporting ? (
             <ActivityIndicator color="#fdfcf8" size="small" />
@@ -264,6 +338,18 @@ export default function QuoteDetailScreen() {
             {exporting ? "Preparing PDF…" : "Export PDF"}
           </Text>
         </TouchableOpacity>
+
+        {/* Edit (draft only) */}
+        {quote.status === "draft" && (
+          <TouchableOpacity
+            onPress={handleEdit}
+            activeOpacity={0.85}
+            className="bg-white border border-charcoal/10 rounded-2xl py-3.5 flex-row items-center justify-center gap-2"
+          >
+            <Ionicons name="create-outline" size={18} color="#1a1a1a" />
+            <Text className="text-charcoal text-sm font-sans-bold">Edit Quotation</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );

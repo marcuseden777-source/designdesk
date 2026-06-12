@@ -28,19 +28,30 @@ export default function ReviewScreen() {
     {}
   );
 
+  const isEditing = !!state.edit_id;
+
   async function handleSave() {
     setSaving(true);
     try {
-      const result = await api.createQuotation({
+      const payload = {
         client_name: state.client_name,
         project_address: state.project_address,
         project_type: state.project_type as string,
         total_sqft: state.total_sqft!,
         rooms: state.rooms,
         line_items: state.line_items,
-        design_session_id: state.design_session_id,
-      });
-      setSavedId(result.id);
+      };
+
+      if (isEditing) {
+        await api.updateQuotation(state.edit_id!, payload);
+        setSavedId(state.edit_id!);
+      } else {
+        const result = await api.createQuotation({
+          ...payload,
+          design_session_id: state.design_session_id,
+        });
+        setSavedId(result.id);
+      }
     } catch (err: any) {
       Alert.alert("Save Failed", err.message ?? "Could not save quotation.");
     } finally {
@@ -77,10 +88,10 @@ export default function ReviewScreen() {
           )}
           <View>
             <Text className="text-charcoal/50 text-xs tracking-widest uppercase">
-              {savedId ? "Saved!" : "Step 4 of 4"}
+              {savedId ? "Saved!" : isEditing ? "Editing" : "Step 4 of 4"}
             </Text>
             <Text className="text-charcoal text-xl font-serif">
-              {savedId ? "Quotation Ready" : "Review & Save"}
+              {savedId ? "Quotation Ready" : isEditing ? "Review Changes" : "Review & Save"}
             </Text>
           </View>
         </View>
@@ -166,8 +177,10 @@ export default function ReviewScreen() {
               <ActivityIndicator color="#fdfcf8" />
             ) : (
               <>
-                <Ionicons name="save-outline" size={18} color="#fdfcf8" />
-                <Text className="text-off-white font-sans-bold text-base">Save Quotation</Text>
+                <Ionicons name={isEditing ? "checkmark-outline" : "save-outline"} size={18} color="#fdfcf8" />
+                <Text className="text-off-white font-sans-bold text-base">
+                  {isEditing ? "Update Quotation" : "Save Quotation"}
+                </Text>
               </>
             )}
           </TouchableOpacity>

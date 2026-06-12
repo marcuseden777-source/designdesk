@@ -6,6 +6,8 @@ import {
   createQuotation,
   getQuotation,
   listQuotations,
+  updateQuotation,
+  updateQuotationStatus,
 } from "../services/quotationService";
 import { generatePDF } from "../services/pdfService";
 import { CreateQuotationSchema } from "../lib/schemas";
@@ -65,6 +67,51 @@ router.get("/:id", requireAuth, async (req: Request, res: Response): Promise<voi
     res.json(quotation);
   } catch (err: any) {
     res.status(404).json({ error: "Quotation not found" });
+  }
+});
+
+// PATCH /api/quotation/:id — update a draft quotation
+router.patch("/:id", requireAuth, async (req: Request, res: Response): Promise<void> => {
+  const { client_name, project_address, project_type, total_sqft, rooms, line_items } = req.body;
+
+  if (!client_name || !project_address || !project_type || !total_sqft || !rooms?.length || !line_items?.length) {
+    res.status(400).json({ error: "Missing required fields" });
+    return;
+  }
+
+  try {
+    const quotation = await updateQuotation(req.params.id as string, req.userId, {
+      client_name,
+      project_address,
+      project_type,
+      total_sqft,
+      rooms,
+      line_items,
+    });
+    res.json(quotation);
+  } catch (err: any) {
+    const status = err.message.includes("not found") ? 404
+      : err.message.includes("Only draft") ? 409 : 500;
+    res.status(status).json({ error: err.message });
+  }
+});
+
+// PATCH /api/quotation/:id/status — transition quote status
+router.patch("/:id/status", requireAuth, async (req: Request, res: Response): Promise<void> => {
+  const { status } = req.body;
+
+  if (!status || !["draft", "sent", "accepted", "rejected"].includes(status)) {
+    res.status(400).json({ error: "Invalid status. Must be: draft, sent, accepted, or rejected" });
+    return;
+  }
+
+  try {
+    const result = await updateQuotationStatus(req.params.id as string, req.userId, status);
+    res.json(result);
+  } catch (err: any) {
+    const httpStatus = err.message.includes("not found") ? 404
+      : err.message.includes("Cannot transition") ? 409 : 500;
+    res.status(httpStatus).json({ error: err.message });
   }
 });
 

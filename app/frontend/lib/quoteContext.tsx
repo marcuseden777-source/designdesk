@@ -23,6 +23,9 @@ export interface QuoteState {
 
   // From design mode (optional pre-population)
   design_session_id?: string;
+
+  // Edit mode — set when editing an existing quotation
+  edit_id?: string;
 }
 
 type Action =
@@ -36,6 +39,7 @@ type Action =
   | { type: "SET_CATALOG_LOADING"; loading: boolean }
   | { type: "SET_CATALOG_ERROR"; error: string }
   | { type: "SET_SESSION_ID"; design_session_id: string }
+  | { type: "SET_EDIT_ID"; edit_id: string }
   | { type: "RESET" };
 
 const initialState: QuoteState = {
@@ -85,6 +89,8 @@ function reducer(state: QuoteState, action: Action): QuoteState {
       return { ...state, catalogError: action.error, catalogLoading: false };
     case "SET_SESSION_ID":
       return { ...state, design_session_id: action.design_session_id };
+    case "SET_EDIT_ID":
+      return { ...state, edit_id: action.edit_id };
     case "RESET":
       return { ...initialState, catalog: state.catalog };
     default:
