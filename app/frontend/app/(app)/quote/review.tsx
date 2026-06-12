@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuote, getSubtotal, formatSGD } from "@/lib/quoteContext";
 import { api } from "@/lib/api";
-import { exportPdf } from "@/lib/pdfExport";
+import { exportPdf, exportDocx } from "@/lib/pdfExport";
 
 export default function ReviewScreen() {
   const router = useRouter();
@@ -66,6 +66,18 @@ export default function ReviewScreen() {
       await exportPdf(savedId, state.client_name);
     } catch (err: any) {
       Alert.alert("Export Failed", err.message ?? "Could not export PDF.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function handleExportDocx() {
+    if (!savedId) return;
+    setExporting(true);
+    try {
+      await exportDocx(savedId, state.client_name);
+    } catch (err: any) {
+      Alert.alert("Export Failed", err.message ?? "Could not export Word document.");
     } finally {
       setExporting(false);
     }
@@ -186,14 +198,32 @@ export default function ReviewScreen() {
           </TouchableOpacity>
         ) : (
           <View className="gap-3">
-            <TouchableOpacity
-              onPress={handleExportPDF}
-              className="bg-terracotta py-4 rounded-xl items-center flex-row justify-center gap-2"
-              activeOpacity={0.8}
-            >
-              <Ionicons name="document-outline" size={18} color="#fdfcf8" />
-              <Text className="text-off-white font-sans-bold text-base">Export PDF</Text>
-            </TouchableOpacity>
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                onPress={handleExportPDF}
+                disabled={exporting}
+                className="flex-1 bg-terracotta py-4 rounded-xl items-center flex-row justify-center gap-2"
+                activeOpacity={0.8}
+              >
+                <Ionicons name="document-text-outline" size={18} color="#fdfcf8" />
+                <Text className="text-off-white font-sans-bold text-base">PDF</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleExportDocx}
+                disabled={exporting}
+                className="flex-1 bg-white border border-charcoal/15 py-4 rounded-xl items-center flex-row justify-center gap-2"
+                activeOpacity={0.8}
+              >
+                <Ionicons name="document-outline" size={18} color="#1a1a1a" />
+                <Text className="text-charcoal font-sans-bold text-base">Word</Text>
+              </TouchableOpacity>
+            </View>
+            {exporting && (
+              <View className="flex-row items-center justify-center gap-2 py-1">
+                <ActivityIndicator size="small" color="#b85c38" />
+                <Text className="text-charcoal/50 text-xs font-sans">Preparing your file…</Text>
+              </View>
+            )}
             <TouchableOpacity
               onPress={handleNewQuote}
               className="bg-white py-3.5 rounded-xl items-center border border-charcoal/10"

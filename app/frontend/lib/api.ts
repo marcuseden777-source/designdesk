@@ -60,8 +60,9 @@ export const api = {
       body: JSON.stringify(payload),
     }).then((r) => r.explanation),
 
-  // PDF — returns a blob URL for sharing
+  // Exports — backend streams the file; helpers download/share it
   getPdfUrl: (id: string) => `${BASE_URL}/api/quotation/${id}/pdf`,
+  getDocxUrl: (id: string) => `${BASE_URL}/api/quotation/${id}/docx`,
 
   // Design sessions
   listDesignSessions: () => request<any[]>("/api/floor-plan"),

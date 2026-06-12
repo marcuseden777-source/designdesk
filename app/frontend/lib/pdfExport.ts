@@ -2,45 +2,64 @@ import { Platform, Alert } from "react-native";
 import { supabase } from "./supabase";
 import { api } from "./api";
 
+type ExportFormat = "pdf" | "docx";
+
+const FORMAT = {
+  pdf: {
+    ext: "pdf",
+    mime: "application/pdf",
+    uti: "com.adobe.pdf",
+    url: (id: string) => api.getPdfUrl(id),
+    label: "PDF",
+  },
+  docx: {
+    ext: "docx",
+    mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    uti: "org.openxmlformats.wordprocessingml.document",
+    url: (id: string) => api.getDocxUrl(id),
+    label: "Word document",
+  },
+} as const;
+
 /**
- * Platform-aware PDF export.
- * - Web: fetch as blob, open in new tab (or trigger download)
- * - Native: use expo-file-system + expo-sharing
+ * Platform-aware quotation export (PDF or editable Word).
+ * - Web: fetch as blob, trigger a download.
+ * - Native: download to cache via expo-file-system, then share.
  */
-export async function exportPdf(quoteId: string, clientName?: string): Promise<void> {
+async function exportQuoteFile(
+  quoteId: string,
+  format: ExportFormat,
+  clientName?: string
+): Promise<void> {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
   if (!token) throw new Error("Not authenticated");
 
-  const pdfUrl = api.getPdfUrl(quoteId);
+  const cfg = FORMAT[format];
+  const url = cfg.url(quoteId);
+  const filename = `quote-${quoteId.slice(0, 8)}.${cfg.ext}`;
 
   if (Platform.OS === "web") {
-    // Fetch the PDF as a blob and open/download it
-    const res = await fetch(pdfUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error(`PDF download failed: HTTP ${res.status}`);
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) throw new Error(`${cfg.label} download failed: HTTP ${res.status}`);
 
     const blob = await res.blob();
     const blobUrl = URL.createObjectURL(blob);
 
-    // Create an invisible anchor to trigger download
     const a = document.createElement("a");
     a.href = blobUrl;
-    a.download = `quote-${quoteId.slice(0, 8)}.pdf`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
 
-    // Cleanup after a short delay
     setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
   } else {
-    // Native: use expo-file-system and expo-sharing
     const { File, Paths } = await import("expo-file-system");
     const Sharing = await import("expo-sharing");
 
-    const dest = new File(Paths.cache, `quote-${quoteId.slice(0, 8)}.pdf`);
-    const downloaded = await File.downloadFileAsync(pdfUrl, dest, {
+    const dest = new File(Paths.cache, filename);
+    const downloaded = await File.downloadFileAsync(url, dest, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -51,9 +70,17 @@ export async function exportPdf(quoteId: string, clientName?: string): Promise<v
     }
 
     await Sharing.shareAsync(downloaded.uri, {
-      mimeType: "application/pdf",
-      dialogTitle: clientName ? `Quote for ${clientName}` : "Share Quotation PDF",
-      UTI: "com.adobe.pdf",
+      mimeType: cfg.mime,
+      dialogTitle: clientName ? `Quote for ${clientName}` : `Share Quotation ${cfg.label}`,
+      UTI: cfg.uti,
     });
   }
+}
+
+export function exportPdf(quoteId: string, clientName?: string): Promise<void> {
+  return exportQuoteFile(quoteId, "pdf", clientName);
+}
+
+export function exportDocx(quoteId: string, clientName?: string): Promise<void> {
+  return exportQuoteFile(quoteId, "docx", clientName);
 }

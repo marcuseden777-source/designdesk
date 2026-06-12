@@ -11,6 +11,7 @@ import {
   explainQuoteItem,
 } from "../services/quotationService";
 import { generatePDF } from "../services/pdfService";
+import { generateDocx } from "../services/docxService";
 import { CreateQuotationSchema } from "../lib/schemas";
 import { Sentry } from "../lib/sentry";
 
@@ -135,6 +136,24 @@ router.get("/:id/pdf", heavyLimiter, requireAuth, async (req: Request, res: Resp
       "Content-Length": pdfBuffer.length,
     });
     res.end(pdfBuffer);
+  } catch (err: any) {
+    Sentry.captureException(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/quotation/:id/docx — export as an editable Word document
+router.get("/:id/docx", heavyLimiter, requireAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const quotation = await getQuotation(req.params.id as string, req.userId);
+    const buffer = await generateDocx(quotation);
+
+    res.set({
+      "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "Content-Disposition": `attachment; filename="quote-${req.params.id.slice(0, 8)}.docx"`,
+      "Content-Length": buffer.length,
+    });
+    res.end(buffer);
   } catch (err: any) {
     Sentry.captureException(err);
     res.status(500).json({ error: err.message });
