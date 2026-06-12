@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { requireAuth } from "../middleware/auth";
 import { heavyLimiter } from "../middleware/rateLimit";
-import { generateDesign } from "../services/designGenerationService";
+import { generateDesign, generateDesignWithControlNet } from "../services/designGenerationService";
 import { uploadBuffer } from "../lib/s3";
 import { uploadToSupabaseStorage, isSupabaseStorageConfigured } from "../lib/supabaseStorage";
 import { supabaseAdmin } from "../lib/supabase";
@@ -20,10 +20,10 @@ router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Re
   const { session_id, style, selected_rooms, project_type, total_sqft } = parsed.data;
 
   try {
-    // Fetch floor plan analysis from session
+    // Fetch floor plan analysis and URL from session
     const { data: session, error: sessionError } = await supabaseAdmin
       .from("design_sessions")
-      .select("floor_plan_analysis")
+      .select("floor_plan_analysis, floor_plan_url")
       .eq("id", session_id)
       .eq("designer_id", req.userId)
       .single();
@@ -33,14 +33,27 @@ router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Re
       return;
     }
 
-    // Generate via Flux 1 (Nvidia NIM)
-    const generatedResult = await generateDesign(
-      session.floor_plan_analysis,
-      style,
-      selected_rooms,
-      project_type,
-      total_sqft ?? null
-    );
+    // Use ControlNet (layout-preserving) if floor plan URL + Replicate token available
+    // Otherwise fall back to Nvidia text-to-image
+    let generatedResult: string;
+    if (session.floor_plan_url && process.env.REPLICATE_API_TOKEN) {
+      generatedResult = await generateDesignWithControlNet(
+        session.floor_plan_url,
+        session.floor_plan_analysis,
+        style,
+        selected_rooms,
+        project_type,
+        total_sqft ?? null
+      );
+    } else {
+      generatedResult = await generateDesign(
+        session.floor_plan_analysis,
+        style,
+        selected_rooms,
+        project_type,
+        total_sqft ?? null
+      );
+    }
 
     // Decode image from data URI or fetch from URL
     let imgBuffer: Buffer | null = null;

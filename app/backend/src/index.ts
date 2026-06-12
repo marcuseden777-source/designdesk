@@ -1,6 +1,8 @@
 import "dotenv/config";
 import { validateEnv } from "./lib/validateEnv";
+import { initSentry, Sentry } from "./lib/sentry";
 validateEnv();
+initSentry();
 
 import express from "express";
 import cors from "cors";
@@ -55,6 +57,11 @@ app.use("/api/quotation", quotationRoutes);
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => res.json({ status: "ok", ts: new Date().toISOString() }));
+
+// ── Sentry error handler (must be after routes) ─────────────────────────────
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
 
 // ── 404 handler ───────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ error: "Route not found" }));

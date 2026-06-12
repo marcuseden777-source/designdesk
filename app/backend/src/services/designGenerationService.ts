@@ -1,3 +1,4 @@
+import Replicate from "replicate";
 import { FloorPlanAnalysis, DesignStyle } from "../types";
 
 const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY!;
@@ -111,4 +112,54 @@ export async function generateDesign(
   }
 
   return `data:image/jpeg;base64,${result.base64}`;
+}
+
+// ── ControlNet generation (preserves floor plan layout) ──────────────────────
+
+export async function generateDesignWithControlNet(
+  floorPlanUrl: string,
+  analysis: FloorPlanAnalysis,
+  style: DesignStyle,
+  selectedRooms: string[],
+  projectType: string,
+  totalSqft: number | null
+): Promise<string> {
+  const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! });
+
+  const roomList = analysis.rooms
+    .filter((r) => selectedRooms.includes(r.name))
+    .map((r) => sanitizeRoomName(r.name))
+    .join(", ");
+
+  const colorNames = style.colors.map(hexToName).join(", ");
+  const sqftNote = totalSqft ? `, ${totalSqft} square feet` : "";
+
+  const prompt = `${style.name} interior design rendering, top-down architectural floor plan view. ${projectType} apartment${sqftNote}. Color palette: ${colorNames}. Materials: ${style.materials.join(", ")}. Mood: ${style.description}. Rooms: ${roomList}. Show furniture, rugs, fixtures in ${style.name} style. Professional architectural illustration, clean and minimal.`;
+
+  const output = await replicate.run("xlabs-ai/flux-controlnet", {
+    input: {
+      prompt,
+      control_image: floorPlanUrl,
+      controlnet_conditioning_scale: 0.75,
+      num_inference_steps: 28,
+      guidance_scale: 3.5,
+    },
+  });
+
+  // Output is typically an array of URLs or a ReadableStream
+  let imageUrl: string;
+  if (Array.isArray(output) && output.length > 0) {
+    imageUrl = String(output[0]);
+  } else if (typeof output === "string") {
+    imageUrl = output;
+  } else {
+    throw new Error("Replicate returned unexpected output format");
+  }
+
+  // Download the image and convert to data URI
+  const imgResponse = await fetch(imageUrl);
+  if (!imgResponse.ok) throw new Error("Failed to download generated image from Replicate");
+  const buffer = Buffer.from(await imgResponse.arrayBuffer());
+
+  return `data:image/jpeg;base64,${buffer.toString("base64")}`;
 }

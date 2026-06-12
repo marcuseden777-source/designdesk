@@ -10,18 +10,20 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1A1A2E"
+      "backgroundColor": "#fdfcf8"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "sg.designdesk.app"
+      "bundleIdentifier": "sg.designdesk.app",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1A1A2E"
+        "backgroundColor": "#fdfcf8"
       },
-      "package": "sg.designdesk.app"
+      "package": "sg.designdesk.app",
+      "versionCode": 1
     },
     "plugins": [
       "expo-router",
