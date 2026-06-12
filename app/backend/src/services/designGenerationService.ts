@@ -1,7 +1,6 @@
 import Replicate from "replicate";
 import { FloorPlanAnalysis, DesignStyle } from "../types";
 
-const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY!;
 const NVIDIA_FLUX_URL = "https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev";
 
 // Map hex colors to natural language names for the prompt
@@ -53,11 +52,16 @@ function buildDesignPrompt(
 }
 
 async function callFluxApi(prompt: string): Promise<{ base64: string; filtered: boolean }> {
+  const apiKey = process.env.NVIDIA_API_KEY;
+  if (!apiKey) {
+    throw new Error("NVIDIA_API_KEY is not configured. Set it in your environment to enable design generation.");
+  }
+
   const response = await fetch(NVIDIA_FLUX_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${NVIDIA_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
       prompt,
@@ -124,7 +128,11 @@ export async function generateDesignWithControlNet(
   projectType: string,
   totalSqft: number | null
 ): Promise<string> {
-  const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! });
+  const replicateToken = process.env.REPLICATE_API_TOKEN;
+  if (!replicateToken) {
+    throw new Error("REPLICATE_API_TOKEN is not configured. Set it in your environment to enable ControlNet generation.");
+  }
+  const replicate = new Replicate({ auth: replicateToken });
 
   const roomList = analysis.rooms
     .filter((r) => selectedRooms.includes(r.name))

@@ -6,6 +6,7 @@ import { uploadBuffer } from "../lib/s3";
 import { uploadToSupabaseStorage, isSupabaseStorageConfigured } from "../lib/supabaseStorage";
 import { supabaseAdmin } from "../lib/supabase";
 import { GenerateDesignSchema } from "../lib/schemas";
+import { Sentry } from "../lib/sentry";
 
 const router = Router();
 
@@ -88,6 +89,7 @@ router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Re
     res.json({ design_url: permanentUrl });
   } catch (err: any) {
     console.error("Design generation error:", err);
+    Sentry.captureException(err);
     res.status(500).json({ error: err.message ?? "Generation failed" });
   }
 });

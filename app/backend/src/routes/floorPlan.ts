@@ -4,6 +4,7 @@ import { requireAuth } from "../middleware/auth";
 import { heavyLimiter } from "../middleware/rateLimit";
 import { analyzeFloorPlan } from "../services/floorPlanService";
 import { supabaseAdmin } from "../lib/supabase";
+import { Sentry } from "../lib/sentry";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } }); // 20MB max
@@ -65,6 +66,7 @@ router.post(
       res.json({ session_id: session.id, floor_plan_url: floorPlanUrl, analysis });
     } catch (err: any) {
       console.error("Floor plan analysis error:", err);
+      Sentry.captureException(err);
       res.status(500).json({ error: err.message ?? "Analysis failed" });
     }
   }

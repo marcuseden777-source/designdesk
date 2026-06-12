@@ -64,11 +64,14 @@ export async function analyzeFloorPlan(
     ],
   });
 
-  const text = response.content[0].type === "text" ? response.content[0].text : "";
+  const rawText = response.content[0].type === "text" ? response.content[0].text : "";
+
+  // Strip markdown code fences if Claude wraps JSON in ```json ... ```
+  const text = rawText.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "").trim();
 
   try {
     return JSON.parse(text) as FloorPlanAnalysis;
   } catch {
-    throw new Error(`Claude returned invalid JSON: ${text.slice(0, 200)}`);
+    throw new Error(`Claude returned invalid JSON: ${rawText.slice(0, 200)}`);
   }
 }

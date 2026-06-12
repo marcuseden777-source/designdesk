@@ -11,6 +11,7 @@ import {
 } from "../services/quotationService";
 import { generatePDF } from "../services/pdfService";
 import { CreateQuotationSchema } from "../lib/schemas";
+import { Sentry } from "../lib/sentry";
 
 const router = Router();
 
@@ -20,6 +21,7 @@ router.get("/catalog", requireAuth, async (_req: Request, res: Response): Promis
     const catalog = await getCategoriesWithItems();
     res.json(catalog);
   } catch (err: any) {
+    Sentry.captureException(err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -30,6 +32,7 @@ router.get("/", requireAuth, async (req: Request, res: Response): Promise<void> 
     const quotes = await listQuotations(req.userId);
     res.json(quotes);
   } catch (err: any) {
+    Sentry.captureException(err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -56,6 +59,7 @@ router.post("/", requireAuth, async (req: Request, res: Response): Promise<void>
     });
     res.status(201).json(quotation);
   } catch (err: any) {
+    Sentry.captureException(err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -66,6 +70,7 @@ router.get("/:id", requireAuth, async (req: Request, res: Response): Promise<voi
     const quotation = await getQuotation(req.params.id as string, req.userId);
     res.json(quotation);
   } catch (err: any) {
+    Sentry.captureException(err);
     res.status(404).json({ error: "Quotation not found" });
   }
 });
@@ -90,6 +95,7 @@ router.patch("/:id", requireAuth, async (req: Request, res: Response): Promise<v
     });
     res.json(quotation);
   } catch (err: any) {
+    Sentry.captureException(err);
     const status = err.message.includes("not found") ? 404
       : err.message.includes("Only draft") ? 409 : 500;
     res.status(status).json({ error: err.message });
@@ -109,6 +115,7 @@ router.patch("/:id/status", requireAuth, async (req: Request, res: Response): Pr
     const result = await updateQuotationStatus(req.params.id as string, req.userId, status);
     res.json(result);
   } catch (err: any) {
+    Sentry.captureException(err);
     const httpStatus = err.message.includes("not found") ? 404
       : err.message.includes("Cannot transition") ? 409 : 500;
     res.status(httpStatus).json({ error: err.message });
@@ -128,6 +135,7 @@ router.get("/:id/pdf", heavyLimiter, requireAuth, async (req: Request, res: Resp
     });
     res.end(pdfBuffer);
   } catch (err: any) {
+    Sentry.captureException(err);
     res.status(500).json({ error: err.message });
   }
 });
