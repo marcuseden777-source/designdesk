@@ -13,6 +13,7 @@ import {
 } from "../hooks/useScrollProgress";
 import { BlueprintSheet } from "./Scene1_Hero";
 import { useImageTextures } from "./assets";
+import { IconSparkles, IconCheck } from "./icons";
 
 export const APARTMENT_STYLES = [
   { name: "Japandi", slug: "japandi" },
@@ -162,7 +163,7 @@ export default function Scene2Upload() {
         <mesh ref={beam} position={[0, 1.85, 0.012]}>
           <planeGeometry args={[2.7, 0.045]} />
           <meshBasicMaterial
-            color="#5eead4"
+            color="#e3a06f"
             transparent
             opacity={0}
             blending={THREE.AdditiveBlending}
@@ -256,22 +257,26 @@ export function Scene2Overlay() {
       <div className="relative flex h-full flex-col items-center justify-between px-4 pb-8 pt-8 md:px-6 md:pb-10 md:pt-12">
         {/* Timing comparison — compact, anchored top */}
         <div className="grid w-full max-w-xl grid-cols-2 gap-3 md:gap-5">
-          <div className="rounded-xl border border-red-500/25 bg-red-950/45 px-4 py-3 text-center backdrop-blur-md">
-            <p className="text-[10px] uppercase tracking-[0.25em] text-red-400 md:text-xs">
+          <div className="rounded-xl border border-off-white/12 bg-ink/55 px-4 py-3 text-center backdrop-blur-md">
+            <p className="font-sans text-[10px] uppercase tracking-[0.25em] text-stone md:text-xs">
               Traditional way
             </p>
-            <p className="mt-1 text-2xl font-bold text-red-300 md:text-3xl">
+            <p className="mt-1 font-serif text-2xl font-semibold text-off-white/75 md:text-3xl">
               3–<span ref={daysRef}>0</span>
-              <span className="ml-1.5 text-sm font-medium">days</span>
+              <span className="ml-1.5 font-sans text-sm font-medium text-stone">
+                days
+              </span>
             </p>
           </div>
-          <div className="rounded-xl border border-green-500/25 bg-green-950/45 px-4 py-3 text-center backdrop-blur-md">
-            <p className="text-[10px] uppercase tracking-[0.25em] text-green-400 md:text-xs">
+          <div className="rounded-xl border border-terracotta/40 bg-terracotta/12 px-4 py-3 text-center backdrop-blur-md">
+            <p className="font-sans text-[10px] uppercase tracking-[0.25em] text-terracotta-soft md:text-xs">
               DesignDesk
             </p>
-            <p className="mt-1 text-2xl font-bold text-green-300 md:text-3xl">
+            <p className="mt-1 font-serif text-2xl font-semibold text-off-white md:text-3xl">
               &lt;&nbsp;<span ref={minsRef}>0</span>
-              <span className="ml-1.5 text-sm font-medium">min</span>
+              <span className="ml-1.5 font-sans text-sm font-medium text-terracotta-soft">
+                min
+              </span>
             </p>
           </div>
         </div>
@@ -289,8 +294,8 @@ export function Scene2Overlay() {
                 transition: "opacity 0.45s ease, transform 0.45s ease",
               }}
             >
-              <span className="h-2 w-2 rounded-full bg-teal-300 shadow-[0_0_10px_rgba(94,234,212,0.9)]" />
-              <span className="rounded-full border border-white/15 bg-black/55 px-3 py-1 text-xs font-medium text-slate-100 backdrop-blur-md">
+              <span className="h-2 w-2 rounded-full bg-terracotta-soft shadow-[0_0_10px_rgba(217,139,106,0.9)]" />
+              <span className="rounded-full border border-off-white/15 bg-ink/65 px-3 py-1 font-sans text-xs font-medium text-off-white/95 backdrop-blur-md">
                 {callout.label}
               </span>
             </div>
@@ -308,7 +313,7 @@ export function Scene2Overlay() {
               pointerEvents: scanDone ? "auto" : "none",
             }}
           >
-            <span className="mr-1 text-xs uppercase tracking-widest text-slate-400">
+            <span className="mr-1 font-sans text-xs uppercase tracking-widest text-stone-dim">
               Try a style
             </span>
             {APARTMENT_STYLES.map((style) => (
@@ -316,10 +321,10 @@ export function Scene2Overlay() {
                 key={style.slug}
                 type="button"
                 onClick={() => pickStyle(style.slug)}
-                className={`rounded-full border px-3.5 py-1.5 text-xs font-medium backdrop-blur-md transition-all duration-200 hover:scale-105 ${
+                className={`cursor-pointer rounded-full border px-3.5 py-1.5 font-sans text-xs font-medium backdrop-blur-md transition-colors duration-200 ${
                   selected === style.slug
-                    ? "border-teal-400 bg-teal-500/25 text-teal-200 shadow-[0_0_14px_rgba(45,212,191,0.35)]"
-                    : "border-white/15 bg-black/50 text-slate-300 hover:border-teal-400/50 hover:text-teal-200"
+                    ? "border-terracotta bg-terracotta/25 text-off-white shadow-[0_0_14px_rgba(184,92,56,0.4)]"
+                    : "border-off-white/15 bg-ink/55 text-stone hover:border-terracotta/50 hover:text-terracotta-soft"
                 }`}
               >
                 {style.name}
@@ -330,28 +335,28 @@ export function Scene2Overlay() {
           <div
             className={`flex items-center gap-2.5 rounded-full border px-5 py-2.5 backdrop-blur-md transition-colors duration-300 ${
               scanDone && !generating
-                ? "border-green-400/40 bg-green-950/60"
-                : "border-teal-400/40 bg-black/55"
+                ? "border-terracotta/45 bg-terracotta/12"
+                : "border-off-white/15 bg-ink/60"
             }`}
           >
             {!scanDone ? (
               <>
-                <span className="h-2 w-2 animate-pulse rounded-full bg-teal-300" />
-                <span className="text-sm font-medium text-teal-100">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-terracotta-soft" />
+                <span className="font-sans text-sm font-medium text-off-white/90">
                   Analysing floor plan… {scanPct}%
                 </span>
               </>
             ) : generating ? (
               <>
-                <span className="h-2 w-2 animate-pulse rounded-full bg-teal-300" />
-                <span className="text-sm font-medium text-teal-100">
-                  ✦ Generating {selectedName}…
+                <IconSparkles className="h-4 w-4 animate-pulse text-terracotta-soft" />
+                <span className="font-sans text-sm font-medium text-off-white/90">
+                  Generating {selectedName}…
                 </span>
               </>
             ) : (
               <>
-                <span className="text-green-300">✓</span>
-                <span className="text-sm font-medium text-green-200">
+                <IconCheck className="h-4 w-4 text-terracotta-soft" />
+                <span className="font-sans text-sm font-medium text-off-white">
                   {selectedName} ready — 20 designs + quote
                 </span>
               </>

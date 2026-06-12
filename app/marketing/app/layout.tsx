@@ -1,5 +1,21 @@
 import type { Metadata, Viewport } from "next";
+import { Playfair_Display, Montserrat } from "next/font/google";
 import "./globals.css";
+
+// Brand typography — matches the product app (Playfair Display + Montserrat).
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-playfair",
+  display: "swap",
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "DesignDesk — 20 AI room designs in seconds",
@@ -8,9 +24,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0f",
+  themeColor: "#161310",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -19,8 +36,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-ink text-text-primary antialiased">{children}</body>
+    <html lang="en" className={`${playfair.variable} ${montserrat.variable}`}>
+      <body className="bg-ink font-sans text-off-white antialiased">
+        {children}
+      </body>
     </html>
   );
 }

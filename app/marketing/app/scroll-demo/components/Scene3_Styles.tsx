@@ -11,6 +11,7 @@ import {
   useScrollProgress,
 } from "../hooks/useScrollProgress";
 import { useImageTextures } from "./assets";
+import { IconSparkles } from "./icons";
 
 /** Four real client floor plans, each restyled in five different looks. */
 const PLANS = ["plan1", "plan2", "plan3", "plan4"] as const;
@@ -167,27 +168,30 @@ export function Scene3Overlay() {
       style={{ opacity: inScene ? 1 : 0 }}
     >
       <div className="text-center">
-        <h2 className="text-3xl font-black leading-tight text-white sm:text-4xl md:text-6xl">
+        <h2 className="font-serif text-4xl font-semibold leading-[1.05] text-off-white sm:text-5xl md:text-6xl">
           20 styles.{" "}
-          <span className="whitespace-nowrap">Your plan.</span>
+          <span className="whitespace-nowrap text-terracotta-soft">
+            Your plan.
+          </span>
         </h2>
-        <p className="mx-auto mt-3 max-w-xs text-sm text-slate-300 sm:max-w-none sm:text-base md:text-xl">
+        <p className="mx-auto mt-3 max-w-xs font-sans text-sm text-stone sm:max-w-none sm:text-base md:text-xl">
           Real floor plans, restyled by DesignDesk in seconds.
         </p>
       </div>
 
       <div className="flex flex-col items-center gap-4">
         <div
-          className={`rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-widest backdrop-blur-sm transition-colors duration-300 ${
+          className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 font-sans text-xs font-medium uppercase tracking-widest backdrop-blur-sm transition-colors duration-300 ${
             showingAfter
-              ? "border border-teal-400/50 bg-teal-950/60 text-teal-300"
-              : "border border-slate-500/50 bg-slate-900/60 text-slate-400"
+              ? "border border-terracotta/50 bg-terracotta/15 text-terracotta-soft"
+              : "border border-off-white/20 bg-ink/55 text-stone"
           }`}
         >
-          {showingAfter ? "✦ AI-styled" : "Original plan"}
+          {showingAfter && <IconSparkles className="h-3.5 w-3.5" />}
+          {showingAfter ? "AI-styled" : "Original plan"}
         </div>
-        <div className="flex items-center gap-3 rounded-full border border-white/10 bg-black/40 px-5 py-2.5 backdrop-blur-sm md:gap-4 md:px-6">
-          <p className="text-sm font-semibold text-white md:text-lg">
+        <div className="flex items-center gap-3 rounded-full border border-off-white/10 bg-ink/45 px-5 py-2.5 backdrop-blur-sm md:gap-4 md:px-6">
+          <p className="font-sans text-sm font-semibold text-off-white md:text-lg">
             {WAVE_STYLES[wave].name}
           </p>
           <div className="flex gap-1.5">
@@ -195,12 +199,12 @@ export function Scene3Overlay() {
               <span
                 key={style.slug}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === wave ? "w-6 bg-teal-400" : "w-1.5 bg-white/25"
+                  i === wave ? "w-6 bg-terracotta" : "w-1.5 bg-off-white/25"
                 }`}
               />
             ))}
           </div>
-          <p className="hidden text-xs text-slate-400 sm:block">
+          <p className="hidden font-sans text-xs text-stone-dim sm:block">
             {wave * CARDS_PER_WAVE + 1}–{(wave + 1) * CARDS_PER_WAVE} of 20
           </p>
         </div>

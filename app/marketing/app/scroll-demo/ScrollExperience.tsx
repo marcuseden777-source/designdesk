@@ -16,8 +16,8 @@ function LoadingSkeleton() {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-ink">
       <div className="flex flex-col items-center gap-4">
-        <div className="h-24 w-20 animate-pulse rounded-lg border border-slate-700 bg-slate-900" />
-        <div className="h-3 w-32 animate-pulse rounded-full bg-slate-800" />
+        <div className="h-24 w-20 animate-pulse rounded-lg border border-off-white/15 bg-ink-700" />
+        <div className="h-3 w-32 animate-pulse rounded-full bg-ink-600" />
       </div>
     </div>
   );
@@ -75,8 +75,8 @@ export default function ScrollExperience() {
           className="fixed left-5 top-5 z-20 md:left-6 md:top-6"
           style={{ pointerEvents: "none" }}
         >
-          <p className="text-xs font-semibold tracking-[0.3em] text-white/85 md:text-sm md:tracking-[0.35em]">
-            DESIGN<span className="text-teal-300">DESK</span>
+          <p className="font-sans text-xs font-semibold tracking-[0.3em] text-off-white/90 md:text-sm md:tracking-[0.35em]">
+            DESIGN<span className="text-terracotta-soft">DESK</span>
           </p>
         </div>
         <div

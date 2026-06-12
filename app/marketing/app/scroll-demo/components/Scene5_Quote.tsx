@@ -4,6 +4,13 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { SCENES, useScrollProgress } from "../hooks/useScrollProgress";
 import { FloatingPanels } from "./assets";
+import {
+  IconRuler,
+  IconPalette,
+  IconSofa,
+  IconHardHat,
+  IconReceipt,
+} from "./icons";
 
 /**
  * Scene 5 — generated interiors drift at staggered depths behind the
@@ -26,11 +33,11 @@ export default function Scene5Quote() {
 }
 
 const LINE_ITEMS = [
-  { icon: "📐", label: "Floor area", id: "area" },
-  { icon: "🎨", label: "Style", id: "style" },
-  { icon: "🪑", label: "Materials", id: "materials" },
-  { icon: "👷", label: "Labour", id: "labour" },
-  { icon: "💰", label: "Total", id: "total" },
+  { Icon: IconRuler, label: "Floor area", id: "area" },
+  { Icon: IconPalette, label: "Style", id: "style" },
+  { Icon: IconSofa, label: "Materials", id: "materials" },
+  { Icon: IconHardHat, label: "Labour", id: "labour" },
+  { Icon: IconReceipt, label: "Total", id: "total" },
 ] as const;
 
 /** HTML overlay — receipt-print quote card with staggered counters. */
@@ -89,27 +96,35 @@ export function Scene5Overlay() {
     switch (id) {
       case "area":
         return (
-          <span ref={areaRef} className="font-medium text-slate-200">
+          <span ref={areaRef} className="font-sans font-medium text-off-white/90">
             0 sqm
           </span>
         );
       case "style":
-        return <span className="font-medium text-slate-200">Japandi</span>;
+        return (
+          <span className="font-sans font-medium text-off-white/90">Japandi</span>
+        );
       case "materials":
         return (
-          <span ref={materialsRef} className="font-medium text-slate-200">
+          <span
+            ref={materialsRef}
+            className="font-sans font-medium text-off-white/90"
+          >
             S$0
           </span>
         );
       case "labour":
         return (
-          <span ref={labourRef} className="font-medium text-slate-200">
+          <span ref={labourRef} className="font-sans font-medium text-off-white/90">
             S$0
           </span>
         );
       case "total":
         return (
-          <span ref={totalRef} className="text-xl font-bold text-teal-300">
+          <span
+            ref={totalRef}
+            className="font-serif text-xl font-semibold text-terracotta-soft"
+          >
             S$0
           </span>
         );
@@ -123,11 +138,16 @@ export function Scene5Overlay() {
     >
       <div
         ref={cardRef}
-        className="w-full max-w-[375px] rounded-2xl border border-slate-700 bg-[#111118] p-6 shadow-2xl shadow-teal-500/10"
+        className="w-full max-w-[360px] rounded-2xl border border-off-white/12 bg-ink-700/95 p-6 shadow-2xl shadow-black/40 backdrop-blur-sm"
       >
-        <h3 className="text-lg font-semibold text-teal-400">
-          💡 DesignDesk Quote
-        </h3>
+        <div className="flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-terracotta/20 text-terracotta-soft">
+            <IconReceipt className="h-4 w-4" />
+          </span>
+          <h3 className="font-sans text-base font-semibold tracking-wide text-off-white">
+            DesignDesk Quote
+          </h3>
+        </div>
         <div className="mt-5 space-y-4">
           {LINE_ITEMS.map((item) => (
             <div
@@ -135,18 +155,19 @@ export function Scene5Overlay() {
               data-quote-row
               className={`flex items-center justify-between ${
                 item.id === "total"
-                  ? "border-t border-dashed border-slate-700 pt-4"
+                  ? "border-t border-dashed border-off-white/15 pt-4"
                   : ""
               }`}
             >
-              <span className="text-sm text-slate-400">
-                {item.icon} {item.label}
+              <span className="flex items-center gap-2 font-sans text-sm text-stone">
+                <item.Icon className="h-4 w-4 text-stone-dim" />
+                {item.label}
               </span>
               {valueFor(item.id)}
             </div>
           ))}
         </div>
-        <p className="mt-6 text-sm italic text-slate-400">
+        <p className="mt-6 font-sans text-sm italic text-stone-dim">
           Quote ready before the client hangs up.
         </p>
       </div>

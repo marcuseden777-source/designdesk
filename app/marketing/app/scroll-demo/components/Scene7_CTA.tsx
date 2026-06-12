@@ -10,6 +10,7 @@ import {
   useScrollProgress,
 } from "../hooks/useScrollProgress";
 import { useImageTextures } from "./assets";
+import { IconArrowRight } from "./icons";
 
 export const DASHBOARD_URL =
   process.env.NEXT_PUBLIC_DASHBOARD_URL ??
@@ -129,25 +130,32 @@ export function Scene7Overlay() {
   });
 
   return (
-    <div className="sticky top-0 flex h-[100svh] flex-col items-center justify-center gap-4 px-6 text-center">
-      <p className="text-3xl font-semibold text-white" style={show(0.88)}>
+    <div className="sticky top-0 flex h-[100svh] flex-col items-center justify-center gap-3 px-6 text-center">
+      <p
+        className="font-serif text-3xl font-medium text-off-white md:text-4xl"
+        style={show(0.88)}
+      >
         Your design.
       </p>
-      <p className="text-3xl font-semibold text-white" style={show(0.91)}>
+      <p
+        className="font-serif text-3xl font-medium text-off-white md:text-4xl"
+        style={show(0.91)}
+      >
         Your quote.
       </p>
       <p
-        className="bg-gradient-to-r from-teal-400 to-purple-500 bg-clip-text text-6xl font-black text-transparent md:text-7xl"
+        className="font-serif text-6xl font-semibold italic text-terracotta md:text-7xl"
         style={show(0.94)}
       >
         Instantly.
       </p>
       <a
         href={DASHBOARD_URL}
-        className="pointer-events-auto mt-8 rounded-full bg-gradient-to-r from-teal-500 to-purple-600 px-8 py-4 text-lg font-semibold text-white transition-transform hover:scale-105"
+        className="group pointer-events-auto mt-8 inline-flex cursor-pointer items-center gap-2 rounded-full bg-terracotta px-8 py-4 font-sans text-base font-semibold text-off-white shadow-lg shadow-terracotta/25 transition-colors duration-200 hover:bg-terracotta-deep"
         style={show(0.97)}
       >
-        Start Designing Free →
+        Start Designing Free
+        <IconArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
       </a>
     </div>
   );

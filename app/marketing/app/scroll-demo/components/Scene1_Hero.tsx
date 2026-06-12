@@ -12,6 +12,7 @@ import {
 } from "../hooks/useScrollProgress";
 import { lenisInstance } from "./LenisProvider";
 import { FloatingPanels, useImageTexture } from "./assets";
+import { IconArrowDown } from "./icons";
 
 /**
  * Procedural blueprint — instant fallback drawn on canvas while the
@@ -97,8 +98,8 @@ export default function Scene1Hero() {
       <Float speed={1.5} rotationIntensity={0.3} floatIntensity={0.5}>
         <BlueprintSheet rotation={[-0.3, 0.15, 0]} />
       </Float>
-      {/* Soft glow beneath the sheet */}
-      <pointLight position={[0, -1, 2]} intensity={0.8} color="#2dd4bf" distance={8} />
+      {/* Soft warm glow beneath the sheet */}
+      <pointLight position={[0, -1, 2]} intensity={0.85} color="#e3a06f" distance={8} />
       {/* Distant interiors — hint of what's coming, softened by fog */}
       <FloatingPanels
         slugs={["japandi", "art-deco", "biophilic", "industrial", "coastal"]}
@@ -135,25 +136,23 @@ export function Scene1Overlay() {
       className="sticky top-0 flex h-[100svh] flex-col items-center justify-center px-6 text-center"
       style={{ opacity: fade, visibility: fade <= 0 ? "hidden" : "visible" }}
     >
-      <p className="mb-5 text-xs font-semibold uppercase tracking-[0.45em] text-teal-400">
+      <p className="mb-5 font-sans text-xs font-semibold uppercase tracking-[0.45em] text-terracotta-soft">
         DesignDesk
       </p>
-      <h1 className="text-4xl font-bold leading-tight text-white md:text-6xl">
+      <h1 className="font-serif text-5xl font-semibold leading-[1.05] text-off-white md:text-7xl">
         Drop your floor plan.
       </h1>
-      <p className="mt-4 text-xl text-slate-300 md:text-2xl">
-        Get{" "}
-        <span className="bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text font-semibold text-transparent">
-          20 designs
-        </span>{" "}
+      <p className="mt-5 font-sans text-lg text-stone md:text-2xl">
+        Get <span className="font-medium text-terracotta-soft">20 designs</span>{" "}
         in seconds.
       </p>
       <button
         type="button"
         onClick={scrollToNext}
-        className="pointer-events-auto mt-12 rounded-full border border-slate-600 px-6 py-3 text-sm text-slate-300 transition-colors hover:border-teal-400 hover:text-teal-300"
+        className="group pointer-events-auto mt-12 inline-flex cursor-pointer items-center gap-2 rounded-full border border-off-white/25 px-6 py-3 font-sans text-sm text-off-white/90 transition-colors duration-200 hover:border-terracotta-soft hover:text-terracotta-soft"
       >
-        See how it works ↓
+        See how it works
+        <IconArrowDown className="h-4 w-4 transition-transform duration-200 group-hover:translate-y-0.5" />
       </button>
     </div>
   );

@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SCENES, scrollState } from "../hooks/useScrollProgress";
 import { useBlueprintTexture } from "./Scene1_Hero";
 import { styleUrl, useImageTexture, useImageTextures } from "./assets";
+import { IconCheck, IconClose } from "./icons";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -85,7 +86,7 @@ export default function Scene6Workflow() {
           );
         })}
       </group>
-      <pointLight position={[0, 3, 0]} intensity={1.2} color="#7dd3fc" />
+      <pointLight position={[0, 3, 0]} intensity={1.2} color="#f0c89a" />
     </group>
   );
 }
@@ -118,10 +119,13 @@ function TraditionalCard({
 }) {
   return (
     <div
-      className={`flex items-center justify-between rounded-xl border border-red-500/25 bg-red-950/30 px-4 py-3 ${className}`}
+      className={`flex items-center justify-between rounded-xl border border-off-white/12 bg-ink/55 px-4 py-3 ${className}`}
     >
-      <span className="text-sm text-slate-200">❌ {step}</span>
-      <span className="ml-3 shrink-0 rounded-full bg-red-500/20 px-3 py-1 text-xs font-semibold text-red-300">
+      <span className="flex items-center gap-2 font-sans text-sm text-stone">
+        <IconClose className="h-3.5 w-3.5 shrink-0 text-stone-dim" />
+        {step}
+      </span>
+      <span className="ml-3 shrink-0 rounded-full bg-off-white/8 px-3 py-1 font-sans text-xs font-semibold text-stone">
         {time}
       </span>
     </div>
@@ -139,10 +143,13 @@ function DesignDeskCard({
 }) {
   return (
     <div
-      className={`flex items-center justify-between rounded-xl border border-green-500/25 bg-green-950/30 px-4 py-3 ${className}`}
+      className={`flex items-center justify-between rounded-xl border border-terracotta/35 bg-terracotta/12 px-4 py-3 ${className}`}
     >
-      <span className="text-sm text-slate-200">✅ {step}</span>
-      <span className="ml-3 shrink-0 rounded-full bg-green-500/20 px-3 py-1 text-xs font-semibold text-green-300">
+      <span className="flex items-center gap-2 font-sans text-sm text-off-white">
+        <IconCheck className="h-3.5 w-3.5 shrink-0 text-terracotta-soft" />
+        {step}
+      </span>
+      <span className="ml-3 shrink-0 rounded-full bg-terracotta/25 px-3 py-1 font-sans text-xs font-semibold text-terracotta-soft">
         {time}
       </span>
     </div>
@@ -207,12 +214,12 @@ export function Scene6Overlay() {
         ref={pinRef}
         className="hidden h-[100svh] flex-col justify-center px-8 md:flex lg:px-20"
       >
-        <h2 className="mb-10 text-center text-3xl font-bold text-white lg:text-5xl">
+        <h2 className="mb-10 text-center font-serif text-4xl font-semibold text-off-white lg:text-5xl">
           Two ways to get there.
         </h2>
         <div className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-10">
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-widest text-red-400">
+            <h3 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-stone">
               Traditional process
             </h3>
             <div className="space-y-2.5">
@@ -224,7 +231,7 @@ export function Scene6Overlay() {
             </div>
           </div>
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-widest text-green-400">
+            <h3 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-terracotta-soft">
               DesignDesk
             </h3>
             <div className="space-y-2.5">
@@ -233,7 +240,7 @@ export function Scene6Overlay() {
                   <DesignDeskCard step={s.step} time={s.time} />
                 </div>
               ))}
-              <p className="pt-6 text-sm italic text-slate-400">
+              <p className="pt-6 font-sans text-sm italic text-stone-dim">
                 Done before the kettle boils.
               </p>
             </div>
@@ -243,10 +250,10 @@ export function Scene6Overlay() {
 
       {/* Mobile: single-column stacked cards, no pinning */}
       <div className="flex min-h-full flex-col justify-center gap-2.5 px-6 py-24 md:hidden">
-        <h2 className="mb-6 text-center text-3xl font-bold text-white">
+        <h2 className="mb-6 text-center font-serif text-3xl font-semibold text-off-white">
           Two ways to get there.
         </h2>
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-red-400">
+        <h3 className="mb-2 font-sans text-xs font-semibold uppercase tracking-widest text-stone">
           Traditional process
         </h3>
         {TRADITIONAL_STEPS.map((s) => (
@@ -254,7 +261,7 @@ export function Scene6Overlay() {
             <TraditionalCard step={s.step} time={s.time} />
           </div>
         ))}
-        <h3 className="mb-2 mt-8 text-xs font-semibold uppercase tracking-widest text-green-400">
+        <h3 className="mb-2 mt-8 font-sans text-xs font-semibold uppercase tracking-widest text-terracotta-soft">
           DesignDesk
         </h3>
         {DESIGNDESK_STEPS.map((s) => (
