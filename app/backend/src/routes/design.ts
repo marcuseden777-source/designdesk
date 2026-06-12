@@ -1,14 +1,15 @@
 import { Router, Request, Response } from "express";
 import { requireAuth } from "../middleware/auth";
+import { heavyLimiter } from "../middleware/rateLimit";
 import { generateDesign } from "../services/designGenerationService";
 import { uploadBuffer } from "../lib/s3";
+import { uploadToSupabaseStorage, isSupabaseStorageConfigured } from "../lib/supabaseStorage";
 import { supabaseAdmin } from "../lib/supabase";
-import axios from "axios";
 
 const router = Router();
 
 // POST /api/design/generate
-router.post("/generate", requireAuth, async (req: Request, res: Response): Promise<void> => {
+router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Response): Promise<void> => {
   const { session_id, style, selected_rooms, project_type, total_sqft } = req.body;
 
   if (!session_id || !style || !selected_rooms?.length || !project_type) {
@@ -39,20 +40,20 @@ router.post("/generate", requireAuth, async (req: Request, res: Response): Promi
       total_sqft ?? null
     );
 
-    // Upload to S3 if configured, otherwise return data URI directly
+    // Decode image from data URI or fetch from URL
+    let imgBuffer: Buffer | null = null;
+    if (generatedResult.startsWith("data:")) {
+      const base64Data = generatedResult.split(",")[1];
+      imgBuffer = Buffer.from(base64Data, "base64");
+    }
+
+    // Upload priority: S3 → Supabase Storage → data URI fallback
     let permanentUrl: string;
-    if (process.env.S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID) {
-      let imgBuffer: Buffer;
-      if (generatedResult.startsWith("data:")) {
-        const base64Data = generatedResult.split(",")[1];
-        imgBuffer = Buffer.from(base64Data, "base64");
-      } else {
-        const imgResponse = await axios.get(generatedResult, { responseType: "arraybuffer" });
-        imgBuffer = Buffer.from(imgResponse.data);
-      }
+    if (process.env.S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID && imgBuffer) {
       permanentUrl = await uploadBuffer(imgBuffer, "image/jpeg", "generated-designs");
+    } else if (isSupabaseStorageConfigured() && imgBuffer) {
+      permanentUrl = await uploadToSupabaseStorage(imgBuffer, "image/jpeg", "generated-designs");
     } else {
-      // No S3 configured — return data URI directly (works for demo)
       permanentUrl = generatedResult;
     }
 

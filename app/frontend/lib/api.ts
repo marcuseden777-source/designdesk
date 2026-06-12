@@ -42,6 +42,9 @@ export const api = {
   // PDF — returns a blob URL for sharing
   getPdfUrl: (id: string) => `${BASE_URL}/api/quotation/${id}/pdf`,
 
+  // Design sessions
+  listDesignSessions: () => request<any[]>("/api/floor-plan"),
+
   // Floor plan
   analyzeFloorPlan: async (formData: FormData) => {
     const authHeader = await getAuthHeader();

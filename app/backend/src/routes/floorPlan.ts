@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import multer from "multer";
 import { requireAuth } from "../middleware/auth";
+import { heavyLimiter } from "../middleware/rateLimit";
 import { analyzeFloorPlan } from "../services/floorPlanService";
 import { supabaseAdmin } from "../lib/supabase";
 
@@ -11,6 +12,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 
 // Uploads floor plan to S3, runs Claude Vision, saves analysis to DB
 router.post(
   "/analyze",
+  heavyLimiter,
   requireAuth,
   upload.single("floor_plan"),
   async (req: Request, res: Response): Promise<void> => {
@@ -83,6 +85,22 @@ router.get("/session/:id", requireAuth, async (req: Request, res: Response): Pro
   }
 
   res.json(data);
+});
+
+// GET /api/floor-plan — List all design sessions for the authenticated user
+router.get("/", requireAuth, async (req: Request, res: Response): Promise<void> => {
+  const { data, error } = await supabaseAdmin
+    .from("design_sessions")
+    .select("id, floor_plan_url, generated_design_url, design_style_id, status, created_at, project_type, total_sqft")
+    .eq("designer_id", req.userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    res.status(500).json({ error: error.message });
+    return;
+  }
+
+  res.json(data ?? []);
 });
 
 export default router;
