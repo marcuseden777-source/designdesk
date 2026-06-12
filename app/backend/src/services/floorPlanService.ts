@@ -44,7 +44,7 @@ export async function analyzeFloorPlan(
   mimeType: "image/jpeg" | "image/png" | "image/webp" | "image/gif"
 ): Promise<FloorPlanAnalysis> {
   const response = await client.messages.create({
-    model: "claude-sonnet-4-5-20241022",
+    model: "claude-sonnet-4-6",
     max_tokens: 2048,
     system: SYSTEM_PROMPT,
     messages: [
