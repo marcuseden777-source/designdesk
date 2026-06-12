@@ -1,0 +1,92 @@
+"use client";
+
+import { LenisProvider } from "./components/LenisProvider";
+import ScrollCanvas from "./components/ScrollCanvas";
+import MobileFallback from "./components/MobileFallback";
+import { Scene1Overlay } from "./components/Scene1_Hero";
+import { Scene2Overlay } from "./components/Scene2_Upload";
+import { Scene3Overlay } from "./components/Scene3_Styles";
+import { Scene4Overlay } from "./components/Scene4_BeforeAfter";
+import { Scene5Overlay } from "./components/Scene5_Quote";
+import { Scene6Overlay } from "./components/Scene6_Workflow";
+import { Scene7Overlay } from "./components/Scene7_CTA";
+import { useDeviceCheck } from "./hooks/useDeviceCheck";
+
+function LoadingSkeleton() {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-ink">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-24 w-20 animate-pulse rounded-lg border border-slate-700 bg-slate-900" />
+        <div className="h-3 w-32 animate-pulse rounded-full bg-slate-800" />
+      </div>
+    </div>
+  );
+}
+
+export default function ScrollDemoPage() {
+  const { ready, useFallback } = useDeviceCheck();
+
+  // SSR + first client paint: neutral skeleton until the device check runs.
+  if (!ready) return <LoadingSkeleton />;
+
+  // Low-end path renders OUTSIDE Lenis so CSS scroll-snap works natively.
+  if (useFallback) return <MobileFallback />;
+
+  return (
+    <LenisProvider>
+      <main
+        style={{
+          height: "1150vh",
+          position: "relative",
+          background:
+            "linear-gradient(rgba(13, 10, 8, 0.82), rgba(10, 8, 6, 0.88)), url(/textures/backdrop.webp) center / cover fixed no-repeat #0d0a08",
+        }}
+      >
+        <ScrollCanvas />
+        {/* Cinematic warm vignette between canvas and overlay content */}
+        <div
+          aria-hidden
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 5,
+            pointerEvents: "none",
+            background:
+              "radial-gradient(ellipse at center, transparent 55%, rgba(8, 5, 3, 0.55) 100%)",
+          }}
+        />
+        {/* Brand wordmark */}
+        <div className="fixed left-6 top-6 z-20" style={{ pointerEvents: "none" }}>
+          <p className="text-sm font-semibold tracking-[0.35em] text-white/85">
+            DESIGN<span className="text-teal-300">DESK</span>
+          </p>
+        </div>
+        <div
+          style={{ position: "relative", zIndex: 10, pointerEvents: "none" }}
+        >
+          <section style={{ height: "150vh" }}>
+            <Scene1Overlay />
+          </section>
+          <section style={{ height: "150vh" }}>
+            <Scene2Overlay />
+          </section>
+          <section style={{ height: "200vh" }}>
+            <Scene3Overlay />
+          </section>
+          <section style={{ height: "150vh" }}>
+            <Scene4Overlay />
+          </section>
+          <section style={{ height: "150vh" }}>
+            <Scene5Overlay />
+          </section>
+          <section style={{ height: "200vh" }}>
+            <Scene6Overlay />
+          </section>
+          <section style={{ height: "150vh" }}>
+            <Scene7Overlay />
+          </section>
+        </div>
+      </main>
+    </LenisProvider>
+  );
+}
