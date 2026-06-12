@@ -4,11 +4,9 @@ import { Text } from "@/components/Text";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { File, Paths } from "expo-file-system";
-import * as Sharing from "expo-sharing";
 import { useQuote, getSubtotal, formatSGD } from "@/lib/quoteContext";
 import { api } from "@/lib/api";
-import { supabase } from "@/lib/supabase";
+import { exportPdf } from "@/lib/pdfExport";
 
 export default function ReviewScreen() {
   const router = useRouter();
@@ -54,20 +52,7 @@ export default function ReviewScreen() {
     if (!savedId) return;
     setExporting(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      if (!token) { Alert.alert("Error", "Not authenticated."); return; }
-
-      const pdfUrl = api.getPdfUrl(savedId);
-      const dest = new File(Paths.cache, `quote-${savedId}.pdf`);
-      const downloaded = await File.downloadFileAsync(pdfUrl, dest, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      await Sharing.shareAsync(downloaded.uri, {
-        mimeType: "application/pdf",
-        dialogTitle: "Share Quotation PDF",
-        UTI: "com.adobe.pdf",
-      });
+      await exportPdf(savedId, state.client_name);
     } catch (err: any) {
       Alert.alert("Export Failed", err.message ?? "Could not export PDF.");
     } finally {

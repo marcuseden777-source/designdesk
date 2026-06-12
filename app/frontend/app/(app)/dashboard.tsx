@@ -14,6 +14,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { Card } from "@/components/Card";
 import { DashboardStats } from "@/components/DashboardStats";
 import { DashboardActions } from "@/components/DashboardActions";
+import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
@@ -29,6 +30,8 @@ export default function DashboardScreen() {
   }
 
   const firstName = designer?.full_name?.split(" ")[0] ?? "Designer";
+
+  if (loading) return <DashboardSkeleton />;
 
   return (
     <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>

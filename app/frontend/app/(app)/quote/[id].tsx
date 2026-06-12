@@ -10,10 +10,8 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { File, Paths } from "expo-file-system";
-import * as Sharing from "expo-sharing";
 import { api } from "@/lib/api";
-import { supabase } from "@/lib/supabase";
+import { exportPdf } from "@/lib/pdfExport";
 import type { Quotation, QuoteLineItem } from "@/types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -138,27 +136,7 @@ export default function QuoteDetailScreen() {
     if (!quote) return;
     setExporting(true);
     try {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
-      if (!token) throw new Error("Not authenticated");
-
-      const pdfUrl = api.getPdfUrl(quote.id);
-      const dest = new File(Paths.cache, `quote-${quote.id.slice(0, 8)}.pdf`);
-      const downloaded = await File.downloadFileAsync(pdfUrl, dest, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const canShare = await Sharing.isAvailableAsync();
-      if (!canShare) {
-        Alert.alert("Sharing not available", "Your device doesn't support file sharing.");
-        return;
-      }
-
-      await Sharing.shareAsync(downloaded.uri, {
-        mimeType: "application/pdf",
-        dialogTitle: `Quote for ${quote.client_name}`,
-        UTI: "com.adobe.pdf",
-      });
+      await exportPdf(quote.id, quote.client_name);
     } catch (e: any) {
       Alert.alert("Export failed", e?.message ?? "Could not export PDF");
     } finally {

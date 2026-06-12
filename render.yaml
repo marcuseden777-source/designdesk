@@ -11,9 +11,14 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: ALLOWED_ORIGINS
+        value: https://frontend-lzba1gdmv-marcuss-projects-2f8e99c6.vercel.app,https://designdesk.vercel.app
       # Set these manually in Render dashboard (sensitive):
       # SUPABASE_URL
       # SUPABASE_SERVICE_ROLE_KEY
       # SUPABASE_JWT_SECRET
       # ANTHROPIC_API_KEY
       # NVIDIA_API_KEY
+      # AWS_ACCESS_KEY_ID (optional, for S3)
+      # AWS_SECRET_ACCESS_KEY (optional, for S3)
+      # S3_BUCKET_NAME (optional, for S3)

@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { requireAuth } from "../middleware/auth";
+import { heavyLimiter } from "../middleware/rateLimit";
 import {
   getCategoriesWithItems,
   createQuotation,
@@ -66,7 +67,7 @@ router.get("/:id", requireAuth, async (req: Request, res: Response): Promise<voi
 });
 
 // GET /api/quotation/:id/pdf — export as PDF
-router.get("/:id/pdf", requireAuth, async (req: Request, res: Response): Promise<void> => {
+router.get("/:id/pdf", heavyLimiter, requireAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const quotation = await getQuotation(req.params.id as string, req.userId);
     const pdfBuffer = await generatePDF(quotation);
