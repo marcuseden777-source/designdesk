@@ -151,14 +151,17 @@ export default function ScrollCanvas() {
         camera={{ position: [0, 2, 8], fov: 50 }}
         dpr={[1, dprMax]}
         performance={{ min: 0.5 }}
-        gl={{ preserveDrawingBuffer: true }}
+        // Desktop keeps a readable buffer (screenshots / OG capture); phones
+        // skip it so the GPU isn't copying the framebuffer every frame.
+        // Antialias stays on everywhere — the thin blueprint lines need it.
+        gl={{ preserveDrawingBuffer: !isMobile, powerPreference: "high-performance" }}
       >
         {/* Transparent canvas — the warm home backdrop shows through */}
         <fog attach="fog" args={["#171210", 11, 27]} />
         <ambientLight intensity={0.5} color="#fff1e0" />
         <directionalLight position={[3, 5, 4]} intensity={1.05} color="#ffe8cc" />
         <CameraRig />
-        <DustField />
+        <DustField count={isMobile ? 160 : 350} />
         <Suspense fallback={null}>
           <Scene1Hero />
           <Scene2Upload />
