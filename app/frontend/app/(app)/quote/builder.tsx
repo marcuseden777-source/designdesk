@@ -27,6 +27,7 @@ import {
 } from "@/lib/quoteTemplates";
 import { loadTemplates, type LibraryTemplate } from "@/lib/quoteLibrary";
 import type { LineItemPayload } from "@/lib/api";
+import { AppBackdrop } from "@/components/AppBackdrop";
 
 /* -------------------------------------------------------------------------- */
 /*  Measurement control — drag left/right to set sqft / ft-run, or count nos   */
@@ -66,14 +67,14 @@ function MeasureControl({
   return (
     <View>
       <View className="flex-row items-end justify-center gap-2 mb-3">
-        <Text className="text-charcoal text-5xl font-serif">{value}</Text>
-        <Text className="text-charcoal/50 text-base mb-2">{unit}</Text>
+        <Text className="text-off-white text-5xl font-serif">{value}</Text>
+        <Text className="text-off-white/50 text-base mb-2">{unit}</Text>
       </View>
 
       {/* Drag track */}
       <View
         {...pan.panHandlers}
-        className="h-12 rounded-full bg-charcoal/5 border border-charcoal/10 justify-center overflow-hidden"
+        className="h-12 rounded-full bg-off-white/8 border border-off-white/12 justify-center overflow-hidden"
         style={{ width: TRACK, alignSelf: "center" }}
       >
         <View
@@ -81,9 +82,9 @@ function MeasureControl({
           style={{ width: `${pct * 100}%` }}
         />
         <View className="flex-row items-center justify-center gap-2">
-          <Ionicons name="chevron-back" size={16} color="#1a1a1a55" />
-          <Text className="text-charcoal/40 text-xs tracking-widest uppercase">Drag to set</Text>
-          <Ionicons name="chevron-forward" size={16} color="#1a1a1a55" />
+          <Ionicons name="chevron-back" size={16} color="rgba(253,252,248,0.4)" />
+          <Text className="text-off-white/40 text-xs tracking-widest uppercase">Drag to set</Text>
+          <Ionicons name="chevron-forward" size={16} color="rgba(253,252,248,0.4)" />
         </View>
       </View>
 
@@ -93,9 +94,9 @@ function MeasureControl({
           <TouchableOpacity
             key={d}
             onPress={() => onChange(Math.max(0, Math.min(max, value + d)))}
-            className="w-12 h-12 rounded-full border border-charcoal/15 items-center justify-center"
+            className="w-12 h-12 rounded-full border border-off-white/18 items-center justify-center"
           >
-            <Ionicons name={d < 0 ? "remove" : "add"} size={22} color="#1a1a1a" />
+            <Ionicons name={d < 0 ? "remove" : "add"} size={22} color="#fdfcf8" />
           </TouchableOpacity>
         ))}
       </View>
@@ -148,11 +149,11 @@ function AddItemSheet({
 
   return (
     <Modal visible animationType="slide" transparent onRequestClose={onClose}>
-      <View className="flex-1 bg-charcoal/40 justify-end">
-        <View className="bg-off-white rounded-t-3xl max-h-[88%]">
+      <View className="flex-1 bg-ink/60 justify-end">
+        <View className="bg-ink border-t border-off-white/10 rounded-t-3xl max-h-[88%]">
           {/* grabber + header */}
           <View className="items-center pt-3 pb-1">
-            <View className="w-10 h-1 rounded-full bg-charcoal/15" />
+            <View className="w-10 h-1 rounded-full bg-off-white/20" />
           </View>
           <View className="flex-row items-center gap-3 px-5 pb-3">
             <View
@@ -162,17 +163,17 @@ function AddItemSheet({
               <Ionicons name={template.icon} size={26} color={cat.tint} />
             </View>
             <View className="flex-1">
-              <Text className="text-charcoal text-xl font-serif">{template.name}</Text>
-              <Text className="text-charcoal/45 text-xs tracking-widest uppercase">{cat.label}</Text>
+              <Text className="text-off-white text-xl font-serif">{template.name}</Text>
+              <Text className="text-off-white/45 text-xs tracking-widest uppercase">{cat.label}</Text>
             </View>
             <TouchableOpacity onPress={onClose} className="w-9 h-9 items-center justify-center">
-              <Ionicons name="close" size={24} color="#1a1a1a" />
+              <Ionicons name="close" size={24} color="#fdfcf8" />
             </TouchableOpacity>
           </View>
 
           <ScrollView className="px-5" showsVerticalScrollIndicator={false}>
             {/* Tier MCQ */}
-            <Text className="text-charcoal/50 text-xs tracking-widest uppercase mb-2 mt-1">Tier</Text>
+            <Text className="text-off-white/50 text-xs tracking-widest uppercase mb-2 mt-1">Tier</Text>
             <View className="flex-row flex-wrap gap-2 mb-6">
               {template.tiers.map((t) => {
                 const active = t.key === tier.key;
@@ -181,13 +182,13 @@ function AddItemSheet({
                     key={t.key}
                     onPress={() => setTier(t)}
                     className={`px-4 py-2.5 rounded-full border ${
-                      active ? "bg-terracotta border-terracotta" : "bg-off-white border-charcoal/15"
+                      active ? "bg-terracotta border-terracotta" : "bg-off-white/[0.05] border-off-white/18"
                     }`}
                   >
-                    <Text className={active ? "text-off-white font-sans-semibold" : "text-charcoal"}>
+                    <Text className={active ? "text-off-white font-sans-semibold" : "text-off-white"}>
                       {t.label}
                     </Text>
-                    <Text className={`text-xs ${active ? "text-off-white/80" : "text-charcoal/40"}`}>
+                    <Text className={`text-xs ${active ? "text-off-white/80" : "text-off-white/40"}`}>
                       {formatSGD(t.rate)}/{UNIT_LABEL[template.unit]}
                     </Text>
                   </TouchableOpacity>
@@ -196,7 +197,7 @@ function AddItemSheet({
             </View>
 
             {/* Measurement / count */}
-            <Text className="text-charcoal/50 text-xs tracking-widest uppercase mb-3 text-center">
+            <Text className="text-off-white/50 text-xs tracking-widest uppercase mb-3 text-center">
               {isCount ? "Quantity" : `Measure (${UNIT_LABEL[template.unit]})`}
             </Text>
             <MeasureControl
@@ -208,14 +209,14 @@ function AddItemSheet({
 
             {/* Product breakdown */}
             {template.breakdown && (
-              <View className="mt-7 bg-charcoal/[0.03] rounded-2xl p-4">
-                <Text className="text-charcoal/50 text-xs tracking-widest uppercase mb-2">
+              <View className="mt-7 bg-off-white/[0.05] rounded-2xl p-4">
+                <Text className="text-off-white/50 text-xs tracking-widest uppercase mb-2">
                   Product breakdown
                 </Text>
                 {template.breakdown.map((b) => (
                   <View key={b.label} className="flex-row justify-between py-1">
-                    <Text className="text-charcoal/70 text-sm">{b.label}</Text>
-                    <Text className="text-charcoal/50 text-sm">
+                    <Text className="text-off-white/70 text-sm">{b.label}</Text>
+                    <Text className="text-off-white/50 text-sm">
                       {formatSGD(b.rate)}/{b.unit}
                     </Text>
                   </View>
@@ -225,34 +226,34 @@ function AddItemSheet({
 
             {/* AI explanation */}
             <View className="mt-7 mb-2 flex-row items-center justify-between">
-              <Text className="text-charcoal/50 text-xs tracking-widest uppercase">Explanation</Text>
+              <Text className="text-off-white/50 text-xs tracking-widest uppercase">Explanation</Text>
               <TouchableOpacity
                 onPress={generateExplanation}
                 disabled={explaining}
                 className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-terracotta/10 border border-terracotta/30"
               >
                 {explaining ? (
-                  <ActivityIndicator size="small" color="#b85c38" />
+                  <ActivityIndicator size="small" color="#d98b6a" />
                 ) : (
-                  <Ionicons name="sparkles" size={14} color="#b85c38" />
+                  <Ionicons name="sparkles" size={14} color="#d98b6a" />
                 )}
                 <Text className="text-terracotta text-xs font-sans-semibold">
                   {explaining ? "Generating…" : "Generate with AI"}
                 </Text>
               </TouchableOpacity>
             </View>
-            <View className="bg-off-white border border-charcoal/12 rounded-2xl p-3 min-h-[64px] mb-6">
-              <Text className={notes ? "text-charcoal/80 text-sm leading-5" : "text-charcoal/35 text-sm"}>
+            <View className="bg-off-white/[0.05] border border-off-white/12 rounded-2xl p-3 min-h-[64px] mb-6">
+              <Text className={notes ? "text-off-white/80 text-sm leading-5" : "text-off-white/35 text-sm"}>
                 {notes || "Add a client-friendly description for this line item."}
               </Text>
             </View>
           </ScrollView>
 
           {/* Add bar */}
-          <View className="px-5 pt-3 pb-6 border-t border-charcoal/10 flex-row items-center gap-3">
+          <View className="px-5 pt-3 pb-6 border-t border-off-white/12 flex-row items-center gap-3">
             <View className="flex-1">
-              <Text className="text-charcoal/45 text-xs">Line total</Text>
-              <Text className="text-charcoal text-2xl font-serif">{formatSGD(lineTotal)}</Text>
+              <Text className="text-off-white/45 text-xs">Line total</Text>
+              <Text className="text-off-white text-2xl font-serif">{formatSGD(lineTotal)}</Text>
             </View>
             <TouchableOpacity
               onPress={() => onAdd(tier, amount, notes)}
@@ -291,7 +292,7 @@ function LibraryCard({
       activeOpacity={0.85}
       className="w-[48%] mb-4"
     >
-      <View className="rounded-2xl overflow-hidden bg-off-white border border-charcoal/10">
+      <View className="rounded-2xl overflow-hidden bg-off-white/[0.05] border border-off-white/12">
         {/* image / icon tile */}
         <View className="h-28 items-center justify-center" style={{ backgroundColor: cat.tint + "1A" }}>
           {template.image ? (
@@ -304,19 +305,19 @@ function LibraryCard({
               onPress={onEdit}
               className="absolute top-2 right-2 w-7 h-7 rounded-full bg-off-white/90 items-center justify-center"
             >
-              <Ionicons name="pencil" size={14} color="#b85c38" />
+              <Ionicons name="pencil" size={14} color="#d98b6a" />
             </TouchableOpacity>
           ) : (
             <View className="absolute top-2 right-2 w-7 h-7 rounded-full bg-off-white/90 items-center justify-center">
-              <Ionicons name="add" size={18} color="#b85c38" />
+              <Ionicons name="add" size={18} color="#d98b6a" />
             </View>
           )}
         </View>
         <View className="p-3">
-          <Text className="text-charcoal font-sans-semibold" numberOfLines={1}>
+          <Text className="text-off-white font-sans-semibold" numberOfLines={1}>
             {template.name}
           </Text>
-          <Text className="text-charcoal/45 text-xs mt-0.5">
+          <Text className="text-off-white/45 text-xs mt-0.5">
             from {formatSGD(fromRate)}/{UNIT_LABEL[template.unit]}
           </Text>
         </View>
@@ -409,18 +410,19 @@ export default function QuoteBuilderScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-ink" edges={["top"]}>
+      <AppBackdrop />
       {/* Header */}
       <View className="flex-row items-center px-5 pt-4 mb-1 gap-3">
         <TouchableOpacity onPress={() => router.back()} className="w-9 h-9 items-center justify-center -ml-2">
-          <Ionicons name="chevron-back" size={24} color="#1a1a1a" />
+          <Ionicons name="chevron-back" size={24} color="#fdfcf8" />
         </TouchableOpacity>
         <View className="flex-1">
-          <Text className="text-charcoal/50 text-xs tracking-widest uppercase">Build quote</Text>
-          <Text className="text-charcoal text-xl font-serif">Item Library</Text>
+          <Text className="text-off-white/50 text-xs tracking-widest uppercase">Build quote</Text>
+          <Text className="text-off-white text-xl font-serif">Item Library</Text>
         </View>
       </View>
-      <Text className="text-charcoal/50 text-sm px-5 mb-4">
+      <Text className="text-off-white/50 text-sm px-5 mb-4">
         {hasRooms
           ? `Tap an item to add it to ${activeRoom ?? "the quote"}.`
           : "Tap any item to add it — no typing required."}
@@ -430,13 +432,13 @@ export default function QuoteBuilderScreen() {
       {hasRooms && (
         <View className="mb-3">
           <View className="flex-row items-center justify-between px-5 mb-2">
-            <Text className="text-charcoal/50 text-xs tracking-widest uppercase">Room</Text>
+            <Text className="text-off-white/50 text-xs tracking-widest uppercase">Room</Text>
             {activeRoom && (
               <TouchableOpacity
                 onPress={() => scaffoldRoom(activeRoom)}
                 className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-terracotta/10 border border-terracotta/30"
               >
-                <Ionicons name="construct-outline" size={13} color="#b85c38" />
+                <Ionicons name="construct-outline" size={13} color="#d98b6a" />
                 <Text className="text-terracotta text-xs font-sans-semibold">Auto-scaffold {activeRoom}</Text>
               </TouchableOpacity>
             )}
@@ -450,13 +452,13 @@ export default function QuoteBuilderScreen() {
                   key={r}
                   onPress={() => setActiveRoom(r)}
                   className={`flex-row items-center gap-1.5 px-4 py-2 rounded-full border ${
-                    on ? "bg-terracotta border-terracotta" : "bg-off-white border-charcoal/15"
+                    on ? "bg-terracotta border-terracotta" : "bg-off-white/[0.05] border-off-white/18"
                   }`}
                 >
-                  <Text className={on ? "text-off-white text-sm" : "text-charcoal text-sm"}>{r}</Text>
+                  <Text className={on ? "text-off-white text-sm" : "text-off-white text-sm"}>{r}</Text>
                   {n > 0 && (
-                    <View className={`px-1.5 rounded-full ${on ? "bg-off-white/25" : "bg-charcoal/10"}`}>
-                      <Text className={`text-[10px] ${on ? "text-off-white" : "text-charcoal/60"}`}>{n}</Text>
+                    <View className={`px-1.5 rounded-full ${on ? "bg-terracotta/30" : "bg-off-white/10"}`}>
+                      <Text className={`text-[10px] ${on ? "text-off-white" : "text-off-white/60"}`}>{n}</Text>
                     </View>
                   )}
                 </TouchableOpacity>
@@ -472,10 +474,10 @@ export default function QuoteBuilderScreen() {
           <TouchableOpacity
             onPress={() => setCatFilter(null)}
             className={`px-4 py-2 rounded-full border ${
-              !catFilter ? "bg-charcoal border-charcoal" : "bg-off-white border-charcoal/15"
+              !catFilter ? "bg-terracotta border-terracotta" : "bg-off-white/[0.05] border-off-white/18"
             }`}
           >
-            <Text className={!catFilter ? "text-off-white text-sm" : "text-charcoal text-sm"}>All</Text>
+            <Text className={!catFilter ? "text-off-white text-sm" : "text-off-white text-sm"}>All</Text>
           </TouchableOpacity>
           {QUOTE_CATEGORIES.map((c) => {
             const active = catFilter === c.key;
@@ -484,11 +486,11 @@ export default function QuoteBuilderScreen() {
                 key={c.key}
                 onPress={() => setCatFilter(active ? null : c.key)}
                 className={`flex-row items-center gap-1.5 px-4 py-2 rounded-full border ${
-                  active ? "bg-charcoal border-charcoal" : "bg-off-white border-charcoal/15"
+                  active ? "bg-terracotta border-terracotta" : "bg-off-white/[0.05] border-off-white/18"
                 }`}
               >
                 <Ionicons name={c.icon} size={14} color={active ? "#fdfcf8" : c.tint} />
-                <Text className={active ? "text-off-white text-sm" : "text-charcoal text-sm"}>{c.label}</Text>
+                <Text className={active ? "text-off-white text-sm" : "text-off-white text-sm"}>{c.label}</Text>
               </TouchableOpacity>
             );
           })}
@@ -514,34 +516,34 @@ export default function QuoteBuilderScreen() {
         {/* Create a new reusable library item */}
         <TouchableOpacity
           onPress={() => router.push("/quote/new-item" as any)}
-          className="mt-1 mb-2 rounded-2xl border border-dashed border-charcoal/25 py-5 items-center justify-center"
+          className="mt-1 mb-2 rounded-2xl border border-dashed border-off-white/25 py-5 items-center justify-center"
         >
-          <Ionicons name="add-circle-outline" size={26} color="#1a1a1a88" />
-          <Text className="text-charcoal/50 text-sm mt-1">Create a new library item</Text>
+          <Ionicons name="add-circle-outline" size={26} color="rgba(253,252,248,0.55)" />
+          <Text className="text-off-white/50 text-sm mt-1">Create a new library item</Text>
         </TouchableOpacity>
       </ScrollView>
 
       {/* Just-added toast */}
       {justAdded && (
-        <View className="absolute left-5 right-5 bottom-28 bg-charcoal rounded-full px-4 py-3 flex-row items-center gap-2">
+        <View className="absolute left-5 right-5 bottom-28 bg-off-white/15 border border-off-white/20 rounded-full px-4 py-3 flex-row items-center gap-2">
           <Ionicons name="checkmark-circle" size={18} color="#d98b6a" />
           <Text className="text-off-white text-sm flex-1">{justAdded} added to quote</Text>
         </View>
       )}
 
       {/* Running quote bar */}
-      <View className="absolute left-0 right-0 bottom-0 bg-off-white border-t border-charcoal/10 px-5 pt-3 pb-7 flex-row items-center gap-3">
+      <View className="absolute left-0 right-0 bottom-0 bg-ink/85 border-t border-off-white/10 px-5 pt-3 pb-7 flex-row items-center gap-3">
         <View className="flex-1">
-          <Text className="text-charcoal/45 text-xs">
+          <Text className="text-off-white/45 text-xs">
             {count} item{count === 1 ? "" : "s"} · subtotal
           </Text>
-          <Text className="text-charcoal text-2xl font-serif">{formatSGD(subtotal)}</Text>
+          <Text className="text-off-white text-2xl font-serif">{formatSGD(subtotal)}</Text>
         </View>
         <TouchableOpacity
           onPress={() => router.push("/quote/review")}
           disabled={count === 0}
           className={`px-6 py-3.5 rounded-full flex-row items-center gap-2 ${
-            count === 0 ? "bg-charcoal/20" : "bg-terracotta"
+            count === 0 ? "bg-off-white/15" : "bg-terracotta"
           }`}
         >
           <Text className="text-off-white text-base font-sans-semibold">Review</Text>

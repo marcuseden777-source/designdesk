@@ -32,6 +32,7 @@ import {
   makeTemplateId,
   inputModeForUnit,
 } from "@/lib/quoteLibrary";
+import { AppBackdrop } from "@/components/AppBackdrop";
 
 const UNITS: QuoteUnit[] = ["sqft", "ftrun", "nos", "item", "lot"];
 const ICON_CHOICES: (keyof typeof Ionicons.glyphMap)[] = [
@@ -42,7 +43,7 @@ const ICON_CHOICES: (keyof typeof Ionicons.glyphMap)[] = [
 
 function SectionLabel({ children }: { children: string }) {
   return (
-    <Text className="text-charcoal/50 text-xs tracking-widest uppercase mb-2 mt-6">{children}</Text>
+    <Text className="text-off-white/50 text-xs tracking-widest uppercase mb-2 mt-6">{children}</Text>
   );
 }
 
@@ -192,22 +193,23 @@ export default function NewItemScreen() {
     ]);
   }
 
-  const inputCls = "bg-off-white border border-charcoal/15 rounded-xl px-3 py-2.5 text-charcoal";
+  const inputCls = "bg-off-white/[0.05] border border-off-white/18 rounded-xl px-3 py-2.5 text-off-white";
 
   return (
-    <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-ink" edges={["top"]}>
+      <AppBackdrop />
       {/* Header */}
       <View className="flex-row items-center px-5 pt-4 mb-1 gap-3">
         <TouchableOpacity onPress={() => router.back()} className="w-9 h-9 items-center justify-center -ml-2">
-          <Ionicons name="chevron-back" size={24} color="#1a1a1a" />
+          <Ionicons name="chevron-back" size={24} color="#fdfcf8" />
         </TouchableOpacity>
         <View className="flex-1">
-          <Text className="text-charcoal/50 text-xs tracking-widest uppercase">Library item</Text>
-          <Text className="text-charcoal text-xl font-serif">{editing ? "Edit Item" : "New Item"}</Text>
+          <Text className="text-off-white/50 text-xs tracking-widest uppercase">Library item</Text>
+          <Text className="text-off-white text-xl font-serif">{editing ? "Edit Item" : "New Item"}</Text>
         </View>
         {editing && (
           <TouchableOpacity onPress={handleDelete} className="w-9 h-9 items-center justify-center">
-            <Ionicons name="trash-outline" size={20} color="#b85c38" />
+            <Ionicons name="trash-outline" size={20} color="#d98b6a" />
           </TouchableOpacity>
         )}
       </View>
@@ -226,17 +228,17 @@ export default function NewItemScreen() {
               ) : (
                 <>
                   <Ionicons name={icon} size={30} color={cat.tint} />
-                  <Text className="text-charcoal/40 text-[10px] mt-1">Add photo</Text>
+                  <Text className="text-off-white/40 text-[10px] mt-1">Add photo</Text>
                 </>
               )}
             </TouchableOpacity>
             <View className="flex-1 justify-center">
-              <Text className="text-charcoal/50 text-xs tracking-widest uppercase mb-1.5">Item name</Text>
+              <Text className="text-off-white/50 text-xs tracking-widest uppercase mb-1.5">Item name</Text>
               <TextInput
                 value={name}
                 onChangeText={setName}
                 placeholder="e.g. Quartz Countertop"
-                placeholderTextColor="#1a1a1a55"
+                placeholderTextColor="rgba(253,252,248,0.4)"
                 className={inputCls}
               />
             </View>
@@ -255,11 +257,11 @@ export default function NewItemScreen() {
                     setIcon(c.icon);
                   }}
                   className={`flex-row items-center gap-1.5 px-3.5 py-2 rounded-full border ${
-                    active ? "bg-charcoal border-charcoal" : "bg-off-white border-charcoal/15"
+                    active ? "bg-terracotta border-terracotta" : "bg-off-white/[0.05] border-off-white/18"
                   }`}
                 >
                   <Ionicons name={c.icon} size={14} color={active ? "#fdfcf8" : c.tint} />
-                  <Text className={active ? "text-off-white text-sm" : "text-charcoal text-sm"}>{c.label}</Text>
+                  <Text className={active ? "text-off-white text-sm" : "text-off-white text-sm"}>{c.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -275,17 +277,17 @@ export default function NewItemScreen() {
                   key={u}
                   onPress={() => setUnit(u)}
                   className={`px-4 py-2 rounded-full border ${
-                    active ? "bg-terracotta border-terracotta" : "bg-off-white border-charcoal/15"
+                    active ? "bg-terracotta border-terracotta" : "bg-off-white/[0.05] border-off-white/18"
                   }`}
                 >
-                  <Text className={active ? "text-off-white text-sm font-sans-semibold" : "text-charcoal text-sm"}>
+                  <Text className={active ? "text-off-white text-sm font-sans-semibold" : "text-off-white text-sm"}>
                     {UNIT_LABEL[u]}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-          <Text className="text-charcoal/40 text-xs mt-2">
+          <Text className="text-off-white/40 text-xs mt-2">
             {inputModeForUnit(unit) === "measure" ? "Drag-to-measure when quoting." : "Counted by quantity when quoting."}
           </Text>
 
@@ -299,10 +301,10 @@ export default function NewItemScreen() {
                   key={ic}
                   onPress={() => setIcon(ic)}
                   className={`w-11 h-11 rounded-xl items-center justify-center border ${
-                    active ? "border-terracotta bg-terracotta/10" : "border-charcoal/12 bg-off-white"
+                    active ? "border-terracotta bg-terracotta/10" : "border-off-white/12 bg-off-white/[0.05]"
                   }`}
                 >
-                  <Ionicons name={ic} size={20} color={active ? "#b85c38" : "#1a1a1a99"} />
+                  <Ionicons name={ic} size={20} color={active ? "#d98b6a" : "rgba(253,252,248,0.55)"} />
                 </TouchableOpacity>
               );
             })}
@@ -310,9 +312,9 @@ export default function NewItemScreen() {
 
           {/* Tiers */}
           <View className="flex-row items-center justify-between mt-6 mb-2">
-            <Text className="text-charcoal/50 text-xs tracking-widest uppercase">Tiers & rates</Text>
+            <Text className="text-off-white/50 text-xs tracking-widest uppercase">Tiers & rates</Text>
             <TouchableOpacity onPress={addTier} className="flex-row items-center gap-1">
-              <Ionicons name="add-circle-outline" size={18} color="#b85c38" />
+              <Ionicons name="add-circle-outline" size={18} color="#d98b6a" />
               <Text className="text-terracotta text-xs font-sans-semibold">Add tier</Text>
             </TouchableOpacity>
           </View>
@@ -322,37 +324,37 @@ export default function NewItemScreen() {
                 value={t.label}
                 onChangeText={(v) => updateTier(i, { label: v })}
                 placeholder="Tier (e.g. Premium)"
-                placeholderTextColor="#1a1a1a55"
+                placeholderTextColor="rgba(253,252,248,0.4)"
                 className={`${inputCls} flex-1`}
               />
-              <View className="flex-row items-center bg-off-white border border-charcoal/15 rounded-xl px-3">
-                <Text className="text-charcoal/40 text-sm">S$</Text>
+              <View className="flex-row items-center bg-off-white/[0.05] border border-off-white/18 rounded-xl px-3">
+                <Text className="text-off-white/40 text-sm">S$</Text>
                 <TextInput
                   value={t.rate ? String(t.rate) : ""}
                   onChangeText={(v) => updateTier(i, { rate: Number(v.replace(/[^0-9.]/g, "")) || 0 })}
                   placeholder="0"
-                  placeholderTextColor="#1a1a1a55"
+                  placeholderTextColor="rgba(253,252,248,0.4)"
                   keyboardType="decimal-pad"
-                  className="text-charcoal py-2.5 w-16 text-right"
+                  className="text-off-white py-2.5 w-16 text-right"
                 />
-                <Text className="text-charcoal/40 text-xs">/{UNIT_LABEL[unit]}</Text>
+                <Text className="text-off-white/40 text-xs">/{UNIT_LABEL[unit]}</Text>
               </View>
               <TouchableOpacity onPress={() => removeTier(i)} className="w-8 h-8 items-center justify-center">
-                <Ionicons name="close-circle" size={20} color={tiers.length > 1 ? "#1a1a1a55" : "#1a1a1a22"} />
+                <Ionicons name="close-circle" size={20} color={tiers.length > 1 ? "rgba(253,252,248,0.4)" : "rgba(253,252,248,0.15)"} />
               </TouchableOpacity>
             </View>
           ))}
 
           {/* Breakdown (Composite) */}
           <View className="flex-row items-center justify-between mt-6 mb-2">
-            <Text className="text-charcoal/50 text-xs tracking-widest uppercase">Product breakdown</Text>
+            <Text className="text-off-white/50 text-xs tracking-widest uppercase">Product breakdown</Text>
             <TouchableOpacity onPress={addPart} className="flex-row items-center gap-1">
-              <Ionicons name="add-circle-outline" size={18} color="#b85c38" />
+              <Ionicons name="add-circle-outline" size={18} color="#d98b6a" />
               <Text className="text-terracotta text-xs font-sans-semibold">Add part</Text>
             </TouchableOpacity>
           </View>
           {breakdown.length === 0 && (
-            <Text className="text-charcoal/35 text-sm mb-1">Optional — itemise sub-products (carcass, hardware, labour…).</Text>
+            <Text className="text-off-white/35 text-sm mb-1">Optional — itemise sub-products (carcass, hardware, labour…).</Text>
           )}
           {breakdown.map((p, i) => (
             <View key={i} className="flex-row items-center gap-2 mb-2">
@@ -360,22 +362,22 @@ export default function NewItemScreen() {
                 value={p.label}
                 onChangeText={(v) => updatePart(i, { label: v })}
                 placeholder="Part (e.g. Soft-close hinge)"
-                placeholderTextColor="#1a1a1a55"
+                placeholderTextColor="rgba(253,252,248,0.4)"
                 className={`${inputCls} flex-1`}
               />
-              <View className="flex-row items-center bg-off-white border border-charcoal/15 rounded-xl px-3">
-                <Text className="text-charcoal/40 text-sm">S$</Text>
+              <View className="flex-row items-center bg-off-white/[0.05] border border-off-white/18 rounded-xl px-3">
+                <Text className="text-off-white/40 text-sm">S$</Text>
                 <TextInput
                   value={p.rate ? String(p.rate) : ""}
                   onChangeText={(v) => updatePart(i, { rate: Number(v.replace(/[^0-9.]/g, "")) || 0 })}
                   placeholder="0"
-                  placeholderTextColor="#1a1a1a55"
+                  placeholderTextColor="rgba(253,252,248,0.4)"
                   keyboardType="decimal-pad"
-                  className="text-charcoal py-2.5 w-14 text-right"
+                  className="text-off-white py-2.5 w-14 text-right"
                 />
               </View>
               <TouchableOpacity onPress={() => removePart(i)} className="w-8 h-8 items-center justify-center">
-                <Ionicons name="close-circle" size={20} color="#1a1a1a55" />
+                <Ionicons name="close-circle" size={20} color="rgba(253,252,248,0.4)" />
               </TouchableOpacity>
             </View>
           ))}
@@ -389,20 +391,20 @@ export default function NewItemScreen() {
               keyboardType="decimal-pad"
               className={`${inputCls} w-28 text-center`}
             />
-            <Text className="text-charcoal/50 text-sm">{UNIT_LABEL[unit]} (pre-filled when quoting)</Text>
+            <Text className="text-off-white/50 text-sm">{UNIT_LABEL[unit]} (pre-filled when quoting)</Text>
           </View>
 
           <View className="flex-row items-center justify-between mt-6 mb-2">
-            <Text className="text-charcoal/50 text-xs tracking-widest uppercase">Default description</Text>
+            <Text className="text-off-white/50 text-xs tracking-widest uppercase">Default description</Text>
             <TouchableOpacity
               onPress={generateNotes}
               disabled={explaining}
               className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-terracotta/10 border border-terracotta/30"
             >
               {explaining ? (
-                <ActivityIndicator size="small" color="#b85c38" />
+                <ActivityIndicator size="small" color="#d98b6a" />
               ) : (
-                <Ionicons name="sparkles" size={14} color="#b85c38" />
+                <Ionicons name="sparkles" size={14} color="#d98b6a" />
               )}
               <Text className="text-terracotta text-xs font-sans-semibold">
                 {explaining ? "Generating…" : "Generate with AI"}
@@ -413,7 +415,7 @@ export default function NewItemScreen() {
             value={notes}
             onChangeText={setNotes}
             placeholder="Client-friendly description used on the quote."
-            placeholderTextColor="#1a1a1a55"
+            placeholderTextColor="rgba(253,252,248,0.4)"
             multiline
             className={`${inputCls} min-h-[80px]`}
             style={{ textAlignVertical: "top" }}
@@ -422,7 +424,7 @@ export default function NewItemScreen() {
       </KeyboardAvoidingView>
 
       {/* Save bar */}
-      <View className="absolute left-0 right-0 bottom-0 bg-off-white border-t border-charcoal/10 px-5 pt-3 pb-7">
+      <View className="absolute left-0 right-0 bottom-0 bg-ink/85 border-t border-off-white/10 px-5 pt-3 pb-7">
         <TouchableOpacity
           onPress={handleSave}
           disabled={saving}
