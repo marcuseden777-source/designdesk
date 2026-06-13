@@ -108,10 +108,13 @@ function CameraRig() {
     } else if (p < SCENES.quote.end) {
       v.set(0, 1, 5);
     } else if (p < SCENES.workflow.end) {
-      // Slow full orbit around the flattened floor plan.
+      // Slow full orbit around the flattened floor plan. Ease the height up
+      // from the quote scene's y=1 over the first fifth so the camera doesn't
+      // jump when the orbit takes over.
       const t = sceneProgress(p, SCENES.workflow);
       const angle = t * Math.PI * 2;
-      v.set(Math.sin(angle) * 5, 2, Math.cos(angle) * 5);
+      const y = THREE.MathUtils.lerp(1, 2, clamp01(t / 0.2));
+      v.set(Math.sin(angle) * 5, y, Math.cos(angle) * 5);
     } else {
       // Pull up to a bird's-eye view for the CTA reveal.
       const t = easeOutCubic(clamp01(sceneProgress(p, SCENES.cta) / 0.4));
