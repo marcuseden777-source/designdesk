@@ -3,6 +3,7 @@ import { View, ActivityIndicator, TouchableOpacity } from "react-native";
 import { Text } from "@/components/Text";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppBackdrop } from "@/components/AppBackdrop";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuote } from "@/lib/quoteContext";
 import { api, type LineItemPayload } from "@/lib/api";
@@ -104,33 +105,34 @@ export default function FromDesignScreen() {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-ink" edges={["top"]}>
+      <AppBackdrop />
       <View className="flex-1 items-center justify-center px-8">
         {!error ? (
           <>
-            <View className="w-16 h-16 rounded-2xl bg-terracotta/10 items-center justify-center mb-6">
-              <Ionicons name="sparkles" size={28} color="#b85c38" />
+            <View className="w-16 h-16 rounded-2xl bg-terracotta/15 border border-terracotta/30 items-center justify-center mb-6">
+              <Ionicons name="sparkles" size={28} color="#d98b6a" />
             </View>
-            <Text className="text-charcoal text-2xl font-serif mb-2 text-center">
+            <Text className="text-off-white text-2xl font-serif mb-2 text-center">
               Costing your design
             </Text>
-            <Text className="text-charcoal/50 text-sm text-center mb-8">
+            <Text className="text-off-white/50 text-sm text-center mb-8">
               Itemising each room from your floor plan and finishes — using your own price library.
             </Text>
             <View className="flex-row items-center gap-2">
-              <ActivityIndicator size="small" color="#b85c38" />
-              <Text className="text-charcoal/60 text-sm">{phase}</Text>
+              <ActivityIndicator size="small" color="#d98b6a" />
+              <Text className="text-off-white/60 text-sm">{phase}</Text>
             </View>
           </>
         ) : (
           <>
-            <View className="w-16 h-16 rounded-2xl bg-charcoal/5 items-center justify-center mb-6">
-              <Ionicons name="alert-circle-outline" size={28} color="#1a1a1a99" />
+            <View className="w-16 h-16 rounded-2xl bg-off-white/10 items-center justify-center mb-6">
+              <Ionicons name="alert-circle-outline" size={28} color="rgba(253,252,248,0.6)" />
             </View>
-            <Text className="text-charcoal text-xl font-serif mb-2 text-center">
+            <Text className="text-off-white text-xl font-serif mb-2 text-center">
               Couldn't auto-quote
             </Text>
-            <Text className="text-charcoal/50 text-sm text-center mb-8">{error}</Text>
+            <Text className="text-off-white/50 text-sm text-center mb-8">{error}</Text>
             <TouchableOpacity
               onPress={() => { ran.current = true; run(); }}
               className="bg-terracotta px-6 py-3.5 rounded-full flex-row items-center gap-2 mb-3"
@@ -145,9 +147,9 @@ export default function FromDesignScreen() {
                   params: { session_id: params.session_id ?? "", project_type: params.project_type ?? "", sqft: params.sqft ?? "" },
                 })
               }
-              className="px-6 py-3 rounded-full border border-charcoal/15"
+              className="px-6 py-3 rounded-full border border-off-white/20"
             >
-              <Text className="text-charcoal font-sans">Build manually instead</Text>
+              <Text className="text-off-white/80 font-sans">Build manually instead</Text>
             </TouchableOpacity>
           </>
         )}
