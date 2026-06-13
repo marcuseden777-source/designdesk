@@ -3,7 +3,6 @@
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
-import { Float } from "@react-three/drei";
 import {
   clamp01,
   SCENES,
@@ -87,17 +86,28 @@ export function BlueprintSheet({
  */
 export default function Scene1Hero() {
   const group = useRef<THREE.Group>(null);
+  const sheet = useRef<THREE.Group>(null);
 
-  useFrame(() => {
+  useFrame(({ clock }) => {
     if (!group.current) return;
-    group.current.visible = scrollState.progress < SCENES.hero.end;
+    const p = scrollState.progress;
+    group.current.visible = p < SCENES.hero.end;
+    if (!group.current.visible || !sheet.current) return;
+    // Idle bob that eases to a settled pose (rotation [-0.3,0,0], position 0)
+    // as we approach the upload handoff, so Scene 2 picks the sheet up with
+    // no jump in frame or position.
+    const settle = 1 - clamp01(p / SCENES.hero.end);
+    const e = clock.elapsedTime;
+    sheet.current.position.y = Math.sin(e * 0.8) * 0.08 * settle;
+    sheet.current.rotation.y = Math.sin(e * 0.5) * 0.05 * settle;
+    sheet.current.rotation.z = Math.sin(e * 0.6) * 0.025 * settle;
   });
 
   return (
     <group ref={group}>
-      <Float speed={1.5} rotationIntensity={0.3} floatIntensity={0.5}>
-        <BlueprintSheet rotation={[-0.3, 0.15, 0]} />
-      </Float>
+      <group ref={sheet}>
+        <BlueprintSheet rotation={[-0.3, 0, 0]} />
+      </group>
       {/* Soft warm glow beneath the sheet */}
       <pointLight position={[0, -1, 2]} intensity={0.85} color="#e3a06f" distance={8} />
       {/* Distant interiors — hint of what's coming, softened by fog */}

@@ -69,8 +69,10 @@ export default function Scene2Upload() {
 
     const t = sceneProgress(p, SCENES.upload);
     if (sheet.current) {
+      // Start pose matches Scene 1's settled sheet ([-0.3,0,0] @ y=0, scale 1)
+      // for a seamless handoff, then tilts to presentation as the camera glides.
       sheet.current.rotation.x = THREE.MathUtils.lerp(-0.3, -1.18, t);
-      sheet.current.position.y = THREE.MathUtils.lerp(0.1, -0.42, t);
+      sheet.current.position.y = THREE.MathUtils.lerp(0, -0.42, t);
       sheet.current.scale.setScalar(THREE.MathUtils.lerp(1, 1.1, t));
     }
 
@@ -173,11 +175,7 @@ export default function Scene2Upload() {
           />
         </mesh>
       </group>
-      {/* Quiet warm floor catching the lamp light */}
-      <mesh rotation-x={-Math.PI / 2} position={[0, -1.15, 0]}>
-        <circleGeometry args={[5, 48]} />
-        <meshStandardMaterial color="#15110d" roughness={1} />
-      </mesh>
+      {/* Warm key light on the sheet (floor disc removed so the full plan reads) */}
       <pointLight
         ref={light}
         color="#ffb35c"
