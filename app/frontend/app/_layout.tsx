@@ -34,18 +34,18 @@ class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 32, backgroundColor: "#FAFAF8" }}>
-          <Text style={{ fontFamily: "PlayfairDisplay_700Bold", fontSize: 22, marginBottom: 8, color: "#1A1A1A" }}>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 32, backgroundColor: "#161310" }}>
+          <Text style={{ fontFamily: "PlayfairDisplay_700Bold", fontSize: 22, marginBottom: 8, color: "#fdfcf8" }}>
             Something went wrong
           </Text>
-          <Text style={{ fontFamily: "Montserrat_400Regular", fontSize: 14, color: "#6B6B6B", textAlign: "center", marginBottom: 24 }}>
+          <Text style={{ fontFamily: "Montserrat_400Regular", fontSize: 14, color: "rgba(253,252,248,0.5)", textAlign: "center", marginBottom: 24 }}>
             The app ran into an unexpected error. Please try again.
           </Text>
           <TouchableOpacity
             onPress={() => this.setState({ hasError: false })}
-            style={{ backgroundColor: "#1A1A1A", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
+            style={{ backgroundColor: "#b85c38", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 999 }}
           >
-            <Text style={{ fontFamily: "Montserrat_600SemiBold", fontSize: 14, color: "#FFFFFF" }}>
+            <Text style={{ fontFamily: "Montserrat_600SemiBold", fontSize: 14, color: "#fdfcf8" }}>
               Try Again
             </Text>
           </TouchableOpacity>
@@ -118,9 +118,14 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ErrorBoundary>
-          <View className="flex-1 bg-off-white">
+          <View className="flex-1 bg-ink">
             <AuthGate session={session} />
-            <Stack screenOptions={{ headerShown: false }}>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: "#161310" },
+              }}
+            >
               <Stack.Screen name="(auth)" />
               <Stack.Screen name="(app)" />
             </Stack>
