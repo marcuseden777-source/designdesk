@@ -18,6 +18,7 @@ interface NetworkInformation {
 /**
  * Decides whether the device gets the full WebGL scroll experience or the
  * lightweight CSS scroll-snap fallback. Fallback triggers when:
+ *  - the visitor prefers reduced motion (accessibility), OR
  *  - WebGL context creation fails, OR
  *  - screen < 640px AND connection is 2g / slow-2g
  */
@@ -48,12 +49,16 @@ export function useDeviceCheck(): DeviceCheckResult {
       connection?.effectiveType === "2g" ||
       connection?.effectiveType === "slow-2g";
 
+    const reducedMotion =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     const smallScreen = window.innerWidth < 640;
     const isMobile = window.innerWidth < 768;
 
     setResult({
       ready: true,
-      useFallback: !webglOk || (smallScreen && slowConnection),
+      useFallback: reducedMotion || !webglOk || (smallScreen && slowConnection),
       isMobile,
     });
   }, []);

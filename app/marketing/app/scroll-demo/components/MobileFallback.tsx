@@ -99,7 +99,11 @@ function FallbackCard({
         aria-hidden
         className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/40 to-ink/70"
       />
-      <div className={`relative ${seen ? "animate-slide-up" : "opacity-0"}`}>
+      <div
+        className={`relative motion-reduce:!opacity-100 motion-reduce:!animate-none ${
+          seen ? "animate-slide-up" : "opacity-0"
+        }`}
+      >
         <p className="font-sans text-sm font-semibold uppercase tracking-[0.35em] text-terracotta-soft">
           {String(index + 1).padStart(2, "0")} / 07
         </p>
