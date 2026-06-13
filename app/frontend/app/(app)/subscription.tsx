@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { AppBackdrop } from "@/components/AppBackdrop";
 
 const TIERS = [
   {
@@ -70,18 +71,19 @@ export default function SubscriptionScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-ink" edges={["top"]}>
+      <AppBackdrop />
       {/* Header */}
       <View className="flex-row items-center px-5 pt-4 pb-2 gap-3">
         <TouchableOpacity
           onPress={() => router.back()}
-          className="w-9 h-9 bg-charcoal/5 border border-charcoal/10 rounded-full items-center justify-center"
+          className="w-9 h-9 bg-off-white/10 border border-off-white/15 rounded-full items-center justify-center"
         >
-          <Ionicons name="arrow-back" size={18} color="#1a1a1a" />
+          <Ionicons name="arrow-back" size={18} color="#fdfcf8" />
         </TouchableOpacity>
         <View>
-          <Text className="text-charcoal/50 text-xs tracking-widest uppercase">Plans</Text>
-          <Text className="text-charcoal text-xl font-serif">Choose Your Plan</Text>
+          <Text className="text-off-white/50 text-xs tracking-widest uppercase">Plans</Text>
+          <Text className="text-off-white text-xl font-serif">Choose Your Plan</Text>
         </View>
       </View>
 
@@ -98,34 +100,22 @@ export default function SubscriptionScreen() {
               key={tier.id}
               className={`mb-4 rounded-2xl p-5 border ${
                 isFeatured
-                  ? "bg-charcoal border-charcoal"
-                  : "bg-white border-charcoal/10"
+                  ? "bg-terracotta/12 border-terracotta/40"
+                  : "bg-off-white/[0.06] border-off-white/12"
               }`}
             >
               {/* Tier header */}
               <View className="flex-row items-center justify-between mb-3">
                 <View>
-                  <Text
-                    className={`text-xs tracking-widest uppercase ${
-                      isFeatured ? "text-off-white/60" : "text-charcoal/50"
-                    }`}
-                  >
+                  <Text className="text-xs tracking-widest uppercase text-off-white/55">
                     {tier.name}
                   </Text>
                   <View className="flex-row items-baseline mt-1">
-                    <Text
-                      className={`text-3xl font-serif ${
-                        isFeatured ? "text-off-white" : "text-charcoal"
-                      }`}
-                    >
+                    <Text className="text-3xl font-serif text-off-white">
                       {tier.price}
                     </Text>
                     {tier.period ? (
-                      <Text
-                        className={`text-sm ml-1 ${
-                          isFeatured ? "text-off-white/50" : "text-charcoal/40"
-                        }`}
-                      >
+                      <Text className="text-sm ml-1 text-off-white/45">
                         {tier.period}
                       </Text>
                     ) : null}
@@ -147,24 +137,16 @@ export default function SubscriptionScreen() {
               <View className="gap-2 mb-4">
                 {tier.features.map((f) => (
                   <View key={f} className="flex-row items-center gap-2">
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={16}
-                      color={isFeatured ? "#b85c38" : "#16a34a"}
-                    />
-                    <Text
-                      className={`text-sm flex-1 ${
-                        isFeatured ? "text-off-white/80" : "text-charcoal/70"
-                      }`}
-                    >
+                    <Ionicons name="checkmark-circle" size={16} color="#d98b6a" />
+                    <Text className="text-sm flex-1 text-off-white/80">
                       {f}
                     </Text>
                   </View>
                 ))}
                 {tier.limits.map((l) => (
                   <View key={l} className="flex-row items-center gap-2">
-                    <Ionicons name="close-circle-outline" size={16} color="#999" />
-                    <Text className="text-sm text-charcoal/40">{l}</Text>
+                    <Ionicons name="close-circle-outline" size={16} color="rgba(253,252,248,0.3)" />
+                    <Text className="text-sm text-off-white/35">{l}</Text>
                   </View>
                 ))}
               </View>
@@ -174,17 +156,17 @@ export default function SubscriptionScreen() {
                 onPress={() => handleUpgrade(tier.id)}
                 disabled={isCurrent}
                 activeOpacity={0.8}
-                className={`py-3.5 rounded-xl items-center ${
+                className={`py-3.5 rounded-full items-center ${
                   isCurrent
-                    ? "bg-charcoal/10 border border-charcoal/10"
+                    ? "bg-off-white/10 border border-off-white/15"
                     : isFeatured
                     ? "bg-terracotta"
-                    : "bg-charcoal"
+                    : "bg-off-white/15 border border-off-white/20"
                 }`}
               >
                 <Text
                   className={`font-sans-semibold text-sm ${
-                    isCurrent ? "text-charcoal/40" : "text-off-white"
+                    isCurrent ? "text-off-white/40" : "text-off-white"
                   }`}
                 >
                   {isCurrent ? "Current Plan" : `Upgrade to ${tier.name}`}
@@ -196,7 +178,7 @@ export default function SubscriptionScreen() {
 
         {/* Footer note */}
         <View className="items-center mt-2 px-4">
-          <Text className="text-charcoal/40 text-xs text-center leading-relaxed">
+          <Text className="text-off-white/40 text-xs text-center leading-relaxed">
             All plans include a 14-day free trial. Cancel anytime.{"\n"}
             Prices are in SGD and exclude GST.
           </Text>
