@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack, useRouter, useSegments, usePathname } from "expo-router";
 import { Session } from "@supabase/supabase-js";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Platform } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import {
@@ -59,17 +59,20 @@ class ErrorBoundary extends React.Component<
 // Redirect unauthenticated users to login, authenticated to app
 function AuthGate({ session }: { session: Session | null | undefined }) {
   const segments = useSegments();
+  const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
     if (session === undefined) return; // still loading
 
     const inAuthGroup = segments[0] === "(auth)";
+    // Web "/" is the public scroll landing — visitors may stay there signed-out.
+    const onLanding = pathname === "/" && Platform.OS === "web";
 
-    if (!session && !inAuthGroup) {
-      router.replace("/(auth)/login");
-    } else if (session && inAuthGroup) {
+    if (session && (inAuthGroup || onLanding)) {
       router.replace("/(app)/dashboard");
+    } else if (!session && !inAuthGroup && !onLanding) {
+      router.replace("/(auth)/login");
     }
   }, [session, segments]);
 

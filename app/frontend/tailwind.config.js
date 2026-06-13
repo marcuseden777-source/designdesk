@@ -8,6 +8,13 @@ module.exports = {
         charcoal: "#1a1a1a",
         "off-white": "#fdfcf8",
         terracotta: "#b85c38",
+        "terracotta-soft": "#d98b6a",
+        "terracotta-deep": "#9a4a2c",
+        // Dark scroll-landing palette
+        ink: "#161310",
+        "ink-700": "#221a13",
+        stone: "#b8a99c",
+        "stone-dim": "#8a7d72",
       },
       width: {
         "two-column": "47%",
