@@ -18,7 +18,7 @@ export const Card = ({ imageSource, title, metadata, onPress }: CardProps) => {
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.85}
-        className="w-full rounded-2xl overflow-hidden border border-charcoal/10"
+        className="w-full rounded-2xl overflow-hidden border border-off-white/12 bg-off-white/[0.05]"
       >
         {/* Edge-to-edge image or placeholder */}
         {imageSource ? (
@@ -28,17 +28,17 @@ export const Card = ({ imageSource, title, metadata, onPress }: CardProps) => {
             resizeMode="cover"
           />
         ) : (
-          <View className="w-full h-card-image bg-charcoal/5 items-center justify-center">
-            <Ionicons name="home-outline" size={32} color="#1a1a1a" style={{ opacity: 0.15 }} />
+          <View className="w-full h-card-image bg-off-white/5 items-center justify-center">
+            <Ionicons name="home-outline" size={32} color="#fdfcf8" style={{ opacity: 0.2 }} />
           </View>
         )}
 
         {/* Info-overlay */}
-        <View className="absolute bottom-0 left-0 right-0 p-4 bg-off-white/70">
-          <Text className="font-serif text-lg text-charcoal" numberOfLines={2}>
+        <View className="absolute bottom-0 left-0 right-0 p-4 bg-ink/75">
+          <Text className="font-serif text-lg text-off-white" numberOfLines={2}>
             {title}
           </Text>
-          <Text className="font-sans text-xs text-charcoal mt-1">
+          <Text className="font-sans text-xs text-off-white/70 mt-1">
             {metadata}
           </Text>
         </View>

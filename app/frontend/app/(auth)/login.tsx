@@ -16,6 +16,7 @@ import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn, signUp, isAutoConfirmed } from "@/lib/auth";
+import { AppBackdrop } from "@/components/AppBackdrop";
 
 // ─── Validation schemas ───────────────────────────────────────────────────────
 
@@ -51,13 +52,13 @@ function FormInput({
 
   return (
     <View className="mb-4">
-      <Text className="text-charcoal/50 text-xs font-sans tracking-wider uppercase mb-1.5">
+      <Text className="text-off-white/50 text-xs font-sans tracking-wider uppercase mb-1.5">
         {label}
       </Text>
       <View className="relative">
         <TextInput
-          className="bg-white text-charcoal rounded-xl px-4 py-3.5 text-base border border-charcoal/10 font-sans"
-          placeholderTextColor="#999"
+          className="bg-off-white/10 text-off-white rounded-2xl px-4 py-3.5 text-base border border-off-white/15 font-sans"
+          placeholderTextColor="rgba(253,252,248,0.35)"
           secureTextEntry={hidden}
           autoCapitalize="none"
           {...props}
@@ -70,7 +71,7 @@ function FormInput({
             <Ionicons
               name={hidden ? "eye-outline" : "eye-off-outline"}
               size={20}
-              color="#999"
+              color="rgba(253,252,248,0.5)"
             />
           </TouchableOpacity>
         )}
@@ -130,7 +131,8 @@ export default function LoginScreen() {
   }
 
   return (
-    <View className="flex-1 bg-off-white">
+    <View className="flex-1 bg-ink">
+      <AppBackdrop />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
@@ -143,30 +145,30 @@ export default function LoginScreen() {
           <View className="px-6 py-12">
             {/* Logo / wordmark */}
             <View className="items-center mb-10">
-              <View className="w-16 h-16 bg-terracotta/10 rounded-2xl items-center justify-center mb-4">
-                <Ionicons name="business-outline" size={32} color="#b85c38" />
+              <View className="w-16 h-16 bg-terracotta/15 border border-terracotta/30 rounded-2xl items-center justify-center mb-4">
+                <Ionicons name="business-outline" size={32} color="#d98b6a" />
               </View>
-              <Text className="text-charcoal text-3xl font-serif tracking-tight">
+              <Text className="text-off-white text-3xl font-serif tracking-tight">
                 DesignDesk
               </Text>
-              <Text className="text-charcoal/50 text-sm font-sans mt-1">
+              <Text className="text-off-white/50 text-sm font-sans mt-1">
                 Interior design, simplified.
               </Text>
             </View>
 
             {/* Tab switcher */}
-            <View className="flex-row bg-charcoal/5 rounded-xl p-1 mb-8">
+            <View className="flex-row bg-off-white/10 rounded-full p-1 mb-8">
               {(["login", "signup"] as const).map((tab) => (
                 <TouchableOpacity
                   key={tab}
                   onPress={() => setMode(tab)}
-                  className={`flex-1 py-2.5 rounded-lg items-center ${
+                  className={`flex-1 py-2.5 rounded-full items-center ${
                     mode === tab ? "bg-terracotta" : ""
                   }`}
                 >
                   <Text
                     className={`text-sm font-sans-semibold ${
-                      mode === tab ? "text-off-white" : "text-charcoal/50"
+                      mode === tab ? "text-off-white" : "text-off-white/50"
                     }`}
                   >
                     {tab === "login" ? "Sign In" : "Create Account"}
@@ -221,7 +223,7 @@ export default function LoginScreen() {
                 <TouchableOpacity
                   onPress={loginForm.handleSubmit(handleLogin)}
                   disabled={loading}
-                  className="bg-terracotta rounded-xl py-4 items-center"
+                  className="bg-terracotta rounded-full py-4 items-center"
                   activeOpacity={0.8}
                 >
                   {loading ? (
@@ -314,7 +316,7 @@ export default function LoginScreen() {
                   )}
                 </TouchableOpacity>
 
-                <Text className="text-charcoal/40 text-xs text-center mt-4 font-sans">
+                <Text className="text-off-white/40 text-xs text-center mt-4 font-sans">
                   By signing up you agree to our{" "}
                   <Text className="text-terracotta">Terms of Service</Text>{" "}
                   and{" "}
