@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useQuote, getSubtotal, formatSGD } from "@/lib/quoteContext";
 import { api } from "@/lib/api";
 import { exportPdf, exportDocx } from "@/lib/pdfExport";
+import { AppBackdrop } from "@/components/AppBackdrop";
 
 export default function ReviewScreen() {
   const router = useRouter();
@@ -89,20 +90,21 @@ export default function ReviewScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-ink" edges={["top"]}>
+      <AppBackdrop />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
         {/* Header */}
         <View className="flex-row items-center px-5 pt-4 mb-6 gap-3">
           {!savedId && (
             <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+              <Ionicons name="arrow-back" size={24} color="#fdfcf8" />
             </TouchableOpacity>
           )}
           <View>
-            <Text className="text-charcoal/50 text-xs tracking-widest uppercase">
+            <Text className="text-off-white/50 text-xs tracking-widest uppercase">
               {savedId ? "Saved!" : isEditing ? "Editing" : "Step 4 of 4"}
             </Text>
-            <Text className="text-charcoal text-xl font-serif">
+            <Text className="text-off-white text-xl font-serif">
               {savedId ? "Quotation Ready" : isEditing ? "Review Changes" : "Review & Save"}
             </Text>
           </View>
@@ -110,18 +112,18 @@ export default function ReviewScreen() {
 
         {/* Success banner */}
         {savedId && (
-          <View className="mx-5 mb-6 bg-green-50 border border-green-200 rounded-2xl p-4 flex-row items-center gap-3">
-            <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
+          <View className="mx-5 mb-6 bg-terracotta/12 border border-terracotta/35 rounded-2xl p-4 flex-row items-center gap-3">
+            <Ionicons name="checkmark-circle" size={24} color="#d98b6a" />
             <View className="flex-1">
-              <Text className="text-green-700 font-sans-semibold">Quotation saved</Text>
-              <Text className="text-green-600 text-xs mt-0.5">ID: {savedId.slice(0, 8).toUpperCase()}</Text>
+              <Text className="text-off-white font-sans-semibold">Quotation saved</Text>
+              <Text className="text-off-white/55 text-xs mt-0.5">ID: {savedId.slice(0, 8).toUpperCase()}</Text>
             </View>
           </View>
         )}
 
         {/* Project summary card */}
-        <View className="mx-5 mb-4 bg-white border border-charcoal/10 rounded-2xl p-4">
-          <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-3">Project</Text>
+        <View className="mx-5 mb-4 bg-off-white/[0.06] border border-off-white/12 rounded-2xl p-4">
+          <Text className="text-off-white/50 text-xs font-sans tracking-widest uppercase mb-3">Project</Text>
           <View className="gap-1.5">
             {[
               { label: "Client", value: state.client_name },
@@ -131,8 +133,8 @@ export default function ReviewScreen() {
               { label: "Rooms", value: state.rooms.join(", ") },
             ].map(({ label, value }) => (
               <View key={label} className="flex-row gap-2">
-                <Text className="text-charcoal/50 text-sm w-16 flex-shrink-0">{label}</Text>
-                <Text className="text-charcoal text-sm flex-1">{value}</Text>
+                <Text className="text-off-white/45 text-sm w-16 flex-shrink-0">{label}</Text>
+                <Text className="text-off-white text-sm flex-1">{value}</Text>
               </View>
             ))}
           </View>
@@ -140,19 +142,19 @@ export default function ReviewScreen() {
 
         {/* Line items by category */}
         <View className="px-5 mb-4">
-          <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-3">Scope of Work</Text>
+          <Text className="text-off-white/50 text-xs font-sans tracking-widest uppercase mb-3">Scope of Work</Text>
           {Object.entries(grouped).map(([cat, items]) => (
             <View key={cat} className="mb-3">
-              <Text className="text-terracotta text-xs font-sans-semibold uppercase tracking-wider mb-1.5">{cat}</Text>
+              <Text className="text-terracotta-soft text-xs font-sans-semibold uppercase tracking-wider mb-1.5">{cat}</Text>
               {items.map((item, idx) => (
-                <View key={`${item.item_id}-${idx}`} className="flex-row items-start py-2 border-b border-charcoal/5">
+                <View key={`${item.item_id}-${idx}`} className="flex-row items-start py-2 border-b border-off-white/8">
                   <View className="flex-1">
-                    <Text className="text-charcoal text-sm">{item.item_name}</Text>
-                    <Text className="text-charcoal/50 text-xs mt-0.5">
+                    <Text className="text-off-white text-sm">{item.item_name}</Text>
+                    <Text className="text-off-white/50 text-xs mt-0.5">
                       {item.room ? `${item.room} · ` : ""}{item.quantity} {item.unit} @ {formatSGD(item.unit_rate)}
                     </Text>
                   </View>
-                  <Text className="text-charcoal text-sm font-sans-semibold ml-3">{formatSGD(item.total_amount)}</Text>
+                  <Text className="text-off-white text-sm font-sans-semibold ml-3">{formatSGD(item.total_amount)}</Text>
                 </View>
               ))}
             </View>
@@ -160,29 +162,29 @@ export default function ReviewScreen() {
         </View>
 
         {/* Totals */}
-        <View className="mx-5 bg-white border border-charcoal/10 rounded-2xl overflow-hidden">
-          <View className="flex-row justify-between px-4 py-3 border-b border-charcoal/5">
-            <Text className="text-charcoal/50">Subtotal</Text>
-            <Text className="text-charcoal">{formatSGD(subtotal)}</Text>
+        <View className="mx-5 bg-off-white/[0.06] border border-off-white/12 rounded-2xl overflow-hidden">
+          <View className="flex-row justify-between px-4 py-3 border-b border-off-white/8">
+            <Text className="text-off-white/50">Subtotal</Text>
+            <Text className="text-off-white">{formatSGD(subtotal)}</Text>
           </View>
-          <View className="flex-row justify-between px-4 py-3 border-b border-charcoal/5">
-            <Text className="text-charcoal/50">GST (9%)</Text>
-            <Text className="text-charcoal">{formatSGD(gst)}</Text>
+          <View className="flex-row justify-between px-4 py-3 border-b border-off-white/8">
+            <Text className="text-off-white/50">GST (9%)</Text>
+            <Text className="text-off-white">{formatSGD(gst)}</Text>
           </View>
-          <View className="flex-row justify-between px-4 py-4 bg-terracotta/10">
-            <Text className="text-terracotta font-sans-bold text-base">TOTAL</Text>
-            <Text className="text-terracotta font-sans-bold text-base">{formatSGD(grandTotal)}</Text>
+          <View className="flex-row justify-between px-4 py-4 bg-terracotta/20">
+            <Text className="text-off-white font-sans-bold text-base">TOTAL</Text>
+            <Text className="text-off-white font-sans-bold text-base">{formatSGD(grandTotal)}</Text>
           </View>
         </View>
       </ScrollView>
 
       {/* Sticky actions */}
-      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-off-white border-t border-charcoal/10 gap-3">
+      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-ink/80 border-t border-off-white/10 gap-3">
         {!savedId ? (
           <TouchableOpacity
             onPress={handleSave}
             disabled={saving}
-            className="bg-terracotta py-4 rounded-xl items-center flex-row justify-center gap-2"
+            className="bg-terracotta py-4 rounded-full items-center flex-row justify-center gap-2"
             activeOpacity={0.8}
           >
             {saving ? (
@@ -202,7 +204,7 @@ export default function ReviewScreen() {
               <TouchableOpacity
                 onPress={handleExportPDF}
                 disabled={exporting}
-                className="flex-1 bg-terracotta py-4 rounded-xl items-center flex-row justify-center gap-2"
+                className="flex-1 bg-terracotta py-4 rounded-full items-center flex-row justify-center gap-2"
                 activeOpacity={0.8}
               >
                 <Ionicons name="document-text-outline" size={18} color="#fdfcf8" />
@@ -211,25 +213,25 @@ export default function ReviewScreen() {
               <TouchableOpacity
                 onPress={handleExportDocx}
                 disabled={exporting}
-                className="flex-1 bg-white border border-charcoal/15 py-4 rounded-xl items-center flex-row justify-center gap-2"
+                className="flex-1 bg-off-white/15 border border-off-white/20 py-4 rounded-full items-center flex-row justify-center gap-2"
                 activeOpacity={0.8}
               >
-                <Ionicons name="document-outline" size={18} color="#1a1a1a" />
-                <Text className="text-charcoal font-sans-bold text-base">Word</Text>
+                <Ionicons name="document-outline" size={18} color="#fdfcf8" />
+                <Text className="text-off-white font-sans-bold text-base">Word</Text>
               </TouchableOpacity>
             </View>
             {exporting && (
               <View className="flex-row items-center justify-center gap-2 py-1">
-                <ActivityIndicator size="small" color="#b85c38" />
-                <Text className="text-charcoal/50 text-xs font-sans">Preparing your file…</Text>
+                <ActivityIndicator size="small" color="#d98b6a" />
+                <Text className="text-off-white/50 text-xs font-sans">Preparing your file…</Text>
               </View>
             )}
             <TouchableOpacity
               onPress={handleNewQuote}
-              className="bg-white py-3.5 rounded-xl items-center border border-charcoal/10"
+              className="bg-off-white/10 py-3.5 rounded-full items-center border border-off-white/15"
               activeOpacity={0.8}
             >
-              <Text className="text-charcoal font-sans">Back to Dashboard</Text>
+              <Text className="text-off-white/80 font-sans">Back to Dashboard</Text>
             </TouchableOpacity>
           </View>
         )}
