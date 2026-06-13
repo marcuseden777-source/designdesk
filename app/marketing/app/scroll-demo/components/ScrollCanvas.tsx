@@ -148,6 +148,7 @@ export default function ScrollCanvas() {
         camera={{ position: [0, 2, 8], fov: 50 }}
         dpr={[1, dprMax]}
         performance={{ min: 0.5 }}
+        gl={{ preserveDrawingBuffer: true }}
       >
         {/* Transparent canvas — the warm home backdrop shows through */}
         <fog attach="fog" args={["#171210", 11, 27]} />

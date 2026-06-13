@@ -146,20 +146,31 @@ export function Scene1Overlay() {
       className="sticky top-0 flex h-[100svh] flex-col items-center justify-center px-6 text-center"
       style={{ opacity: fade, visibility: fade <= 0 ? "hidden" : "visible" }}
     >
-      <p className="mb-5 font-sans text-xs font-semibold uppercase tracking-[0.45em] text-terracotta-soft">
+      {/* Soft radial scrim so the headline reads cleanly over the blueprint */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          background:
+            "radial-gradient(ellipse 58% 42% at center, rgba(8,5,3,0.78) 0%, rgba(8,5,3,0.45) 48%, transparent 76%)",
+        }}
+      />
+      <p className="relative mb-5 font-sans text-xs font-semibold uppercase tracking-[0.45em] text-terracotta-soft">
         DesignDesk
       </p>
-      <h1 className="font-serif text-5xl font-semibold leading-[1.05] text-off-white md:text-7xl">
+      <h1 className="relative font-serif text-5xl font-semibold leading-[1.05] text-off-white md:text-7xl">
         Drop your floor plan.
       </h1>
-      <p className="mt-5 font-sans text-lg text-stone md:text-2xl">
+      <p className="relative mt-5 font-sans text-lg text-off-white/85 md:text-2xl">
         Get <span className="font-medium text-terracotta-soft">20 designs</span>{" "}
         in seconds.
       </p>
       <button
         type="button"
         onClick={scrollToNext}
-        className="group pointer-events-auto mt-12 inline-flex cursor-pointer items-center gap-2 rounded-full border border-off-white/25 px-6 py-3 font-sans text-sm text-off-white/90 transition-colors duration-200 hover:border-terracotta-soft hover:text-terracotta-soft"
+        className="group relative pointer-events-auto mt-12 inline-flex cursor-pointer items-center gap-2 rounded-full border border-off-white/25 px-6 py-3 font-sans text-sm text-off-white/90 transition-colors duration-200 hover:border-terracotta-soft hover:text-terracotta-soft"
       >
         See how it works
         <IconArrowDown className="h-4 w-4 transition-transform duration-200 group-hover:translate-y-0.5" />
