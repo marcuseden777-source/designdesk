@@ -112,7 +112,7 @@ export default function NewQuoteScreen() {
 
             {/* Address */}
             <View>
-              <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-2">Project Address</Text>
+              <Text className="text-off-white/50 text-xs font-sans tracking-widest uppercase mb-2">Project Address</Text>
               <TextInput
                 className="bg-off-white/10 text-off-white rounded-2xl px-4 py-3.5 border border-off-white/15 font-sans"
                 placeholder="e.g. 123 Orchard Road, #12-34"

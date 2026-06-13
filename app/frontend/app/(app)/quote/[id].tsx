@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "@/lib/api";
 import { exportPdf } from "@/lib/pdfExport";
+import { AppBackdrop } from "@/components/AppBackdrop";
 import type { Quotation, QuoteLineItem } from "@/types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -20,10 +21,10 @@ const STATUS_CONFIG: Record<
   Quotation["status"],
   { label: string; color: string; bg: string }
 > = {
-  draft:    { label: "Draft",    color: "#999",    bg: "rgba(153,153,153,0.10)" },
-  sent:     { label: "Sent",     color: "#b85c38", bg: "rgba(184,92,56,0.10)" },
-  accepted: { label: "Accepted", color: "#16a34a", bg: "rgba(22,163,74,0.10)" },
-  rejected: { label: "Rejected", color: "#dc2626", bg: "rgba(220,38,38,0.10)" },
+  draft:    { label: "Draft",    color: "#b8a99c", bg: "rgba(184,169,156,0.12)" },
+  sent:     { label: "Sent",     color: "#d98b6a", bg: "rgba(217,139,106,0.14)" },
+  accepted: { label: "Accepted", color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
+  rejected: { label: "Rejected", color: "#f87171", bg: "rgba(248,113,113,0.12)" },
 };
 
 function formatCurrency(n: number) {
@@ -51,9 +52,9 @@ function groupByCategory(items: QuoteLineItem[]): Record<string, QuoteLineItem[]
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <View className="flex-row justify-between items-start py-2.5 border-b border-charcoal/5">
-      <Text className="text-charcoal/50 text-xs w-32 font-sans">{label}</Text>
-      <Text className="text-charcoal text-xs font-sans flex-1 text-right">{value}</Text>
+    <View className="flex-row justify-between items-start py-2.5 border-b border-off-white/10">
+      <Text className="text-off-white/50 text-xs w-32 font-sans">{label}</Text>
+      <Text className="text-off-white text-xs font-sans flex-1 text-right">{value}</Text>
     </View>
   );
 }
@@ -64,10 +65,10 @@ function CategorySection({ category, items }: { category: string; items: QuoteLi
   return (
     <View className="mb-4">
       <View className="flex-row justify-between items-center py-2 mb-1">
-        <Text className="text-terracotta text-xs font-sans-bold tracking-wider uppercase">
+        <Text className="text-terracotta-soft text-xs font-sans-bold tracking-wider uppercase">
           {category}
         </Text>
-        <Text className="text-terracotta text-xs font-sans-semibold">
+        <Text className="text-terracotta-soft text-xs font-sans-semibold">
           {formatCurrency(categoryTotal)}
         </Text>
       </View>
@@ -75,32 +76,32 @@ function CategorySection({ category, items }: { category: string; items: QuoteLi
       {items.map((item, idx) => (
         <View
           key={idx}
-          className="bg-charcoal/5 border border-charcoal/5 rounded-xl px-3 py-3 mb-1.5"
+          className="bg-off-white/[0.06] border border-off-white/10 rounded-xl px-3 py-3 mb-1.5"
         >
           <View className="flex-row justify-between items-start mb-1">
-            <Text className="text-charcoal text-xs font-sans flex-1 mr-3" numberOfLines={2}>
+            <Text className="text-off-white text-xs font-sans flex-1 mr-3" numberOfLines={2}>
               {item.item_name}
             </Text>
-            <Text className="text-charcoal text-xs font-sans-semibold">
+            <Text className="text-off-white text-xs font-sans-semibold">
               {formatCurrency(item.total_amount)}
             </Text>
           </View>
           <View className="flex-row items-center gap-3">
             {item.room && (
               <View className="flex-row items-center gap-1">
-                <Ionicons name="location-outline" size={11} color="#999" />
-                <Text className="text-charcoal/50 text-xs font-sans">{item.room}</Text>
+                <Ionicons name="location-outline" size={11} color="rgba(253,252,248,0.45)" />
+                <Text className="text-off-white/50 text-xs font-sans">{item.room}</Text>
               </View>
             )}
-            <Text className="text-charcoal/50 text-xs font-sans">
+            <Text className="text-off-white/50 text-xs font-sans">
               {item.quantity} {item.unit} × {formatCurrency(item.unit_rate)}
             </Text>
-            <View className="ml-auto bg-charcoal/5 px-1.5 py-0.5 rounded-md">
-              <Text className="text-charcoal/50 text-xs font-sans">{item.selected_tier}</Text>
+            <View className="ml-auto bg-off-white/10 px-1.5 py-0.5 rounded-md">
+              <Text className="text-off-white/50 text-xs font-sans">{item.selected_tier}</Text>
             </View>
           </View>
           {(item as any).notes ? (
-            <Text className="text-charcoal/50 text-xs mt-1 italic font-sans">{(item as any).notes}</Text>
+            <Text className="text-off-white/50 text-xs mt-1 italic font-sans">{(item as any).notes}</Text>
           ) : null}
         </View>
       ))}
@@ -121,7 +122,7 @@ const NEXT_STATUS: Record<string, { action: string; target: "sent" | "accepted" 
     { action: "Reject", target: "rejected", icon: "close-circle-outline", color: "#dc2626" },
   ],
   rejected: [
-    { action: "Reopen as Draft", target: "draft", icon: "refresh-outline", color: "#999" },
+    { action: "Reopen as Draft", target: "draft", icon: "refresh-outline", color: "#6b6258" },
   ],
   accepted: [],
 };
@@ -191,24 +192,26 @@ export default function QuoteDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-off-white items-center justify-center" edges={["top"]}>
-        <ActivityIndicator color="#b85c38" size="large" />
+      <SafeAreaView className="flex-1 bg-ink items-center justify-center" edges={["top"]}>
+        <AppBackdrop />
+        <ActivityIndicator color="#d98b6a" size="large" />
       </SafeAreaView>
     );
   }
 
   if (error || !quote) {
     return (
-      <SafeAreaView className="flex-1 bg-off-white items-center justify-center px-8" edges={["top"]}>
-        <Ionicons name="alert-circle-outline" size={40} color="#dc2626" />
-        <Text className="text-charcoal text-base font-sans-semibold mt-3 text-center">
+      <SafeAreaView className="flex-1 bg-ink items-center justify-center px-8" edges={["top"]}>
+        <AppBackdrop />
+        <Ionicons name="alert-circle-outline" size={40} color="#f87171" />
+        <Text className="text-off-white text-base font-sans-semibold mt-3 text-center">
           {error ?? "Quotation not found"}
         </Text>
         <TouchableOpacity
           onPress={() => router.back()}
-          className="mt-6 bg-white border border-charcoal/10 px-5 py-2.5 rounded-xl"
+          className="mt-6 bg-off-white/[0.05] border border-off-white/12 px-5 py-2.5 rounded-xl"
         >
-          <Text className="text-charcoal text-sm font-sans">Go back</Text>
+          <Text className="text-off-white text-sm font-sans">Go back</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -218,21 +221,22 @@ export default function QuoteDetailScreen() {
   const grouped = groupByCategory(quote.line_items);
 
   return (
-    <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-ink" edges={["top"]}>
+      <AppBackdrop />
       {/* ── Header ── */}
       <View className="flex-row items-center justify-between px-5 pt-4 pb-4">
         <View className="flex-row items-center gap-3">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="w-9 h-9 bg-charcoal/5 border border-charcoal/10 rounded-full items-center justify-center"
+            className="w-9 h-9 bg-off-white/10 border border-off-white/15 rounded-full items-center justify-center"
           >
-            <Ionicons name="arrow-back" size={18} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={18} color="#fdfcf8" />
           </TouchableOpacity>
           <View>
-            <Text className="text-charcoal text-lg font-serif" numberOfLines={1}>
+            <Text className="text-off-white text-lg font-serif" numberOfLines={1}>
               {quote.client_name}
             </Text>
-            <Text className="text-charcoal/50 text-xs mt-0.5 font-sans">
+            <Text className="text-off-white/50 text-xs mt-0.5 font-sans">
               {formatDate(quote.created_at)}
             </Text>
           </View>
@@ -250,8 +254,8 @@ export default function QuoteDetailScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
       >
         {/* ── Project info ── */}
-        <View className="bg-white border border-charcoal/10 rounded-2xl p-4 mb-5">
-          <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-3">
+        <View className="bg-off-white/[0.05] border border-off-white/12 rounded-2xl p-4 mb-5">
+          <Text className="text-off-white/50 text-xs font-sans tracking-widest uppercase mb-3">
             Project Details
           </Text>
           <InfoRow label="Address" value={quote.project_address} />
@@ -261,8 +265,8 @@ export default function QuoteDetailScreen() {
         </View>
 
         {/* ── Line items by category ── */}
-        <View className="bg-white border border-charcoal/10 rounded-2xl p-4 mb-5">
-          <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-4">
+        <View className="bg-off-white/[0.05] border border-off-white/12 rounded-2xl p-4 mb-5">
+          <Text className="text-off-white/50 text-xs font-sans tracking-widest uppercase mb-4">
             Scope of Work
           </Text>
           {Object.entries(grouped).map(([cat, items]) => (
@@ -271,21 +275,21 @@ export default function QuoteDetailScreen() {
         </View>
 
         {/* ── Totals ── */}
-        <View className="bg-white border border-charcoal/10 rounded-2xl p-4">
-          <Text className="text-charcoal/50 text-xs font-sans tracking-widest uppercase mb-3">
+        <View className="bg-off-white/[0.05] border border-off-white/12 rounded-2xl p-4">
+          <Text className="text-off-white/50 text-xs font-sans tracking-widest uppercase mb-3">
             Summary
           </Text>
-          <View className="flex-row justify-between py-2 border-b border-charcoal/5">
-            <Text className="text-charcoal/50 text-sm font-sans">Subtotal</Text>
-            <Text className="text-charcoal text-sm font-sans">{formatCurrency(quote.subtotal)}</Text>
+          <View className="flex-row justify-between py-2 border-b border-off-white/10">
+            <Text className="text-off-white/50 text-sm font-sans">Subtotal</Text>
+            <Text className="text-off-white text-sm font-sans">{formatCurrency(quote.subtotal)}</Text>
           </View>
-          <View className="flex-row justify-between py-2 border-b border-charcoal/5">
-            <Text className="text-charcoal/50 text-sm font-sans">GST (9%)</Text>
-            <Text className="text-charcoal text-sm font-sans">{formatCurrency(quote.gst_amount)}</Text>
+          <View className="flex-row justify-between py-2 border-b border-off-white/10">
+            <Text className="text-off-white/50 text-sm font-sans">GST (9%)</Text>
+            <Text className="text-off-white text-sm font-sans">{formatCurrency(quote.gst_amount)}</Text>
           </View>
           <View className="flex-row justify-between pt-3 mt-1">
-            <Text className="text-charcoal text-base font-sans-bold">Grand Total</Text>
-            <Text className="text-terracotta text-base font-sans-bold">
+            <Text className="text-off-white text-base font-sans-bold">Grand Total</Text>
+            <Text className="text-terracotta-soft text-base font-sans-bold">
               {formatCurrency(quote.grand_total)}
             </Text>
           </View>
@@ -293,7 +297,7 @@ export default function QuoteDetailScreen() {
       </ScrollView>
 
       {/* ── Sticky action bar ── */}
-      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-off-white/95 gap-2.5">
+      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-ink/85 border-t border-off-white/10 gap-2.5">
         {/* Status transition buttons */}
         {(NEXT_STATUS[quote.status] ?? []).map((t) => (
           <TouchableOpacity
@@ -344,10 +348,10 @@ export default function QuoteDetailScreen() {
           <TouchableOpacity
             onPress={handleEdit}
             activeOpacity={0.85}
-            className="bg-white border border-charcoal/10 rounded-2xl py-3.5 flex-row items-center justify-center gap-2"
+            className="bg-off-white/[0.05] border border-off-white/12 rounded-2xl py-3.5 flex-row items-center justify-center gap-2"
           >
-            <Ionicons name="create-outline" size={18} color="#1a1a1a" />
-            <Text className="text-charcoal text-sm font-sans-bold">Edit Quotation</Text>
+            <Ionicons name="create-outline" size={18} color="#fdfcf8" />
+            <Text className="text-off-white text-sm font-sans-bold">Edit Quotation</Text>
           </TouchableOpacity>
         )}
       </View>

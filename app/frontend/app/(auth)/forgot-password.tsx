@@ -10,6 +10,7 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { resetPassword } from "@/lib/auth";
+import { AppBackdrop } from "@/components/AppBackdrop";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -34,38 +35,39 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <View className="flex-1 bg-off-white px-6 pt-16">
+    <View className="flex-1 bg-ink px-6 pt-16">
+      <AppBackdrop />
       <TouchableOpacity onPress={() => router.back()} className="mb-8">
-        <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+        <Ionicons name="arrow-back" size={24} color="#fdfcf8" />
       </TouchableOpacity>
 
-      <Text className="text-charcoal text-3xl font-serif mb-2">Reset Password</Text>
-      <Text className="text-charcoal/50 text-sm font-sans mb-8 leading-relaxed">
+      <Text className="text-off-white text-3xl font-serif mb-2">Reset Password</Text>
+      <Text className="text-off-white/50 text-sm font-sans mb-8 leading-relaxed">
         Enter your email and we'll send you a link to reset your password.
       </Text>
 
       {sent ? (
-        <View className="bg-charcoal/5 border border-charcoal/10 rounded-2xl p-6 items-center">
-          <Ionicons name="mail-outline" size={36} color="#b85c38" />
-          <Text className="text-charcoal font-sans-semibold text-base mt-3">Email sent!</Text>
-          <Text className="text-charcoal/50 text-sm font-sans text-center mt-1">
+        <View className="bg-off-white/[0.06] border border-off-white/12 rounded-2xl p-6 items-center">
+          <Ionicons name="mail-outline" size={36} color="#d98b6a" />
+          <Text className="text-off-white font-sans-semibold text-base mt-3">Email sent!</Text>
+          <Text className="text-off-white/50 text-sm font-sans text-center mt-1">
             Check your inbox for the password reset link.
           </Text>
           <TouchableOpacity
             onPress={() => router.replace("/(auth)/login")}
             className="mt-5"
           >
-            <Text className="text-terracotta font-sans-semibold">Back to Sign In</Text>
+            <Text className="text-terracotta-soft font-sans-semibold">Back to Sign In</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View>
-          <Text className="text-charcoal/50 text-xs font-sans tracking-wider uppercase mb-1.5">
+          <Text className="text-off-white/50 text-xs font-sans tracking-wider uppercase mb-1.5">
             Email
           </Text>
           <TextInput
-            className="bg-white text-charcoal rounded-xl px-4 py-3.5 text-base border border-charcoal/10 mb-6 font-sans"
-            placeholderTextColor="#999"
+            className="bg-off-white/10 text-off-white rounded-xl px-4 py-3.5 text-base border border-off-white/15 mb-6 font-sans"
+            placeholderTextColor="rgba(253,252,248,0.35)"
             placeholder="you@example.com"
             keyboardType="email-address"
             autoCapitalize="none"

@@ -31,10 +31,10 @@ const STATUS_CONFIG: Record<
   QuotationSummary["status"],
   { label: string; color: string; bg: string }
 > = {
-  draft:    { label: "Draft",    color: "#999",    bg: "rgba(153,153,153,0.10)" },
-  sent:     { label: "Sent",     color: "#b85c38", bg: "rgba(184,92,56,0.10)" },
-  accepted: { label: "Accepted", color: "#16a34a", bg: "rgba(22,163,74,0.10)" },
-  rejected: { label: "Rejected", color: "#dc2626", bg: "rgba(220,38,38,0.10)" },
+  draft:    { label: "Draft",    color: "#b8a99c", bg: "rgba(184,169,156,0.12)" },
+  sent:     { label: "Sent",     color: "#d98b6a", bg: "rgba(217,139,106,0.14)" },
+  accepted: { label: "Accepted", color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
+  rejected: { label: "Rejected", color: "#f87171", bg: "rgba(248,113,113,0.12)" },
 };
 
 function formatCurrency(amount: number) {

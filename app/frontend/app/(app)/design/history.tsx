@@ -26,9 +26,9 @@ interface DesignSession {
 }
 
 const STATUS_STYLE: Record<string, { label: string; color: string; bg: string }> = {
-  analysed:  { label: "Analysed",  color: "#b85c38", bg: "rgba(184,92,56,0.10)" },
-  generated: { label: "Generated", color: "#16a34a", bg: "rgba(22,163,74,0.10)" },
-  error:     { label: "Error",     color: "#dc2626", bg: "rgba(220,38,38,0.10)" },
+  analysed:  { label: "Analysed",  color: "#d98b6a", bg: "rgba(217,139,106,0.14)" },
+  generated: { label: "Generated", color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
+  error:     { label: "Error",     color: "#f87171", bg: "rgba(248,113,113,0.12)" },
 };
 
 function formatDate(iso: string) {
