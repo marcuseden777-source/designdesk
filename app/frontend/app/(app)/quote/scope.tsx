@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuote, formatSGD } from "@/lib/quoteContext";
 import { CatalogItem, LineItemPayload } from "@/lib/api";
+import { AppBackdrop } from "@/components/AppBackdrop";
 
 const RESIDENTIAL_CATS = [
   "Demolition", "Masonry", "Tiling", "Flooring", "Carpentry",
@@ -66,20 +67,21 @@ export default function ScopeScreen() {
   const canProceed = state.line_items.length > 0;
 
   return (
-    <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-ink" edges={["top"]}>
+      <AppBackdrop />
       {/* Header */}
       <View className="px-5 pt-4 mb-3">
         <View className="flex-row items-center gap-3 mb-1">
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={24} color="#fdfcf8" />
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-charcoal/50 text-xs tracking-widest uppercase">Step 3 of 4</Text>
-            <Text className="text-charcoal text-xl font-serif">Scope of Work</Text>
+            <Text className="text-off-white/50 text-xs tracking-widest uppercase">Step 3 of 4</Text>
+            <Text className="text-off-white text-xl font-serif">Scope of Work</Text>
           </View>
           <View className="items-end">
-            <Text className="text-charcoal/50 text-xs">Total</Text>
-            <Text className="text-terracotta font-sans-bold text-base">{formatSGD(grandTotal)}</Text>
+            <Text className="text-off-white/50 text-xs">Total</Text>
+            <Text className="text-terracotta-soft font-sans-bold text-base">{formatSGD(grandTotal)}</Text>
           </View>
         </View>
       </View>
@@ -93,16 +95,16 @@ export default function ScopeScreen() {
               <TouchableOpacity
                 key={room}
                 onPress={() => setActiveRoom(room)}
-                className={`px-4 py-2 rounded-xl border flex-row items-center gap-1.5 ${
+                className={`px-4 py-2 rounded-full border flex-row items-center gap-1.5 ${
                   activeRoom === room
-                    ? "border-terracotta bg-terracotta/10"
-                    : "border-charcoal/10 bg-white"
+                    ? "border-terracotta/50 bg-terracotta/15"
+                    : "border-off-white/12 bg-off-white/[0.05]"
                 }`}
               >
-                <Text className={`text-sm font-sans ${activeRoom === room ? "text-terracotta" : "text-charcoal"}`}>
+                <Text className={`text-sm font-sans ${activeRoom === room ? "text-terracotta-soft" : "text-off-white"}`}>
                   {room.split(" ")[0]}
                 </Text>
-                {hasItems && <View className="w-1.5 h-1.5 rounded-full bg-terracotta" />}
+                {hasItems && <View className="w-1.5 h-1.5 rounded-full bg-terracotta-soft" />}
               </TouchableOpacity>
             );
           })}
@@ -111,16 +113,16 @@ export default function ScopeScreen() {
 
       {/* Active room total */}
       {roomTotal > 0 && (
-        <View className="mx-5 mb-3 bg-white border border-charcoal/10 rounded-xl px-4 py-2.5 flex-row items-center justify-between">
-          <Text className="text-charcoal/50 text-sm">{activeRoom} subtotal</Text>
-          <Text className="text-charcoal font-sans-semibold">{formatSGD(roomTotal)}</Text>
+        <View className="mx-5 mb-3 bg-off-white/[0.06] border border-off-white/12 rounded-2xl px-4 py-2.5 flex-row items-center justify-between">
+          <Text className="text-off-white/50 text-sm">{activeRoom} subtotal</Text>
+          <Text className="text-off-white font-sans-semibold">{formatSGD(roomTotal)}</Text>
         </View>
       )}
 
       {/* Catalog */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 140 }}>
         {state.catalogLoading && (
-          <Text className="text-charcoal/50 text-sm text-center py-8">Loading catalog…</Text>
+          <Text className="text-off-white/50 text-sm text-center py-8">Loading catalog…</Text>
         )}
         {catalog.map((cat) => {
           const isOpen = expandedCat === cat.name;
@@ -129,17 +131,17 @@ export default function ScopeScreen() {
             <View key={cat.name} className="mb-2">
               <TouchableOpacity
                 onPress={() => setExpandedCat(isOpen ? null : cat.name)}
-                className={`flex-row items-center p-4 rounded-xl border ${
-                  isOpen ? "border-terracotta/40 bg-terracotta/5" : "border-charcoal/10 bg-white"
+                className={`flex-row items-center p-4 rounded-2xl border ${
+                  isOpen ? "border-terracotta/40 bg-terracotta/12" : "border-off-white/12 bg-off-white/[0.05]"
                 }`}
               >
-                <Text className="text-charcoal font-sans-semibold flex-1">{cat.name}</Text>
+                <Text className="text-off-white font-sans-semibold flex-1">{cat.name}</Text>
                 {selectedInCat > 0 && (
-                  <View className="bg-terracotta/20 px-2 py-0.5 rounded-full mr-2">
-                    <Text className="text-terracotta text-xs font-sans">{selectedInCat}</Text>
+                  <View className="bg-terracotta/25 px-2 py-0.5 rounded-full mr-2">
+                    <Text className="text-terracotta-soft text-xs font-sans">{selectedInCat}</Text>
                   </View>
                 )}
-                <Ionicons name={isOpen ? "chevron-up" : "chevron-down"} size={16} color="#999" />
+                <Ionicons name={isOpen ? "chevron-up" : "chevron-down"} size={16} color="rgba(253,252,248,0.45)" />
               </TouchableOpacity>
 
               {isOpen && (
@@ -151,7 +153,7 @@ export default function ScopeScreen() {
                     return (
                       <View
                         key={item.id}
-                        className={`rounded-xl border p-3 ${sel ? "border-terracotta/30 bg-terracotta/5" : "border-charcoal/5 bg-white"}`}
+                        className={`rounded-2xl border p-3 ${sel ? "border-terracotta/40 bg-terracotta/12" : "border-off-white/10 bg-off-white/[0.04]"}`}
                       >
                         <TouchableOpacity
                           onPress={() => toggleItem(item, cat.name, activeRoom)}
@@ -159,19 +161,19 @@ export default function ScopeScreen() {
                           activeOpacity={0.7}
                         >
                           <View className={`w-5 h-5 rounded border-2 items-center justify-center mt-0.5 flex-shrink-0 ${
-                            sel ? "border-terracotta bg-terracotta" : "border-charcoal/20"
+                            sel ? "border-terracotta bg-terracotta" : "border-off-white/25"
                           }`}>
                             {sel && <Ionicons name="checkmark" size={12} color="#fdfcf8" />}
                           </View>
                           <View className="flex-1">
-                            <Text className={`text-sm font-sans ${sel ? "text-terracotta" : "text-charcoal"}`}>
+                            <Text className={`text-sm font-sans ${sel ? "text-terracotta-soft" : "text-off-white"}`}>
                               {item.name}
                             </Text>
                             {item.description && (
-                              <Text className="text-charcoal/50 text-xs mt-0.5">{item.description}</Text>
+                              <Text className="text-off-white/50 text-xs mt-0.5">{item.description}</Text>
                             )}
                             {tier && (
-                              <Text className="text-charcoal/50 text-xs mt-1">
+                              <Text className="text-off-white/50 text-xs mt-1">
                                 From {formatSGD(tier.low_rate)} / {item.unit}
                               </Text>
                             )}
@@ -179,16 +181,16 @@ export default function ScopeScreen() {
                         </TouchableOpacity>
 
                         {sel && lineItem && (
-                          <View className="flex-row items-center gap-2 mt-2 pt-2 border-t border-charcoal/10">
-                            <Text className="text-charcoal/50 text-xs">Qty ({item.unit}):</Text>
+                          <View className="flex-row items-center gap-2 mt-2 pt-2 border-t border-off-white/10">
+                            <Text className="text-off-white/50 text-xs">Qty ({item.unit}):</Text>
                             <TextInput
-                              className="bg-off-white text-charcoal text-sm px-3 py-1.5 rounded-lg border border-charcoal/10 w-20 font-sans"
+                              className="bg-off-white/10 text-off-white text-sm px-3 py-1.5 rounded-lg border border-off-white/15 w-20 font-sans"
                               keyboardType="numeric"
                               defaultValue={String(lineItem.quantity)}
                               onEndEditing={(e) => updateQuantity(item.id, activeRoom, e.nativeEvent.text)}
-                              placeholderTextColor="#999"
+                              placeholderTextColor="rgba(253,252,248,0.35)"
                             />
-                            <Text className="text-terracotta text-sm font-sans-semibold ml-auto">
+                            <Text className="text-terracotta-soft text-sm font-sans-semibold ml-auto">
                               {formatSGD(lineItem.total_amount)}
                             </Text>
                           </View>
@@ -204,14 +206,14 @@ export default function ScopeScreen() {
       </ScrollView>
 
       {/* Sticky CTA */}
-      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-off-white border-t border-charcoal/10">
+      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-ink/80 border-t border-off-white/10">
         <TouchableOpacity
           onPress={() => { if (canProceed) router.push("/(app)/quote/review"); }}
           disabled={!canProceed}
-          className={`py-4 rounded-xl items-center ${canProceed ? "bg-terracotta" : "bg-charcoal/10"}`}
+          className={`py-4 rounded-full items-center ${canProceed ? "bg-terracotta" : "bg-off-white/10"}`}
           activeOpacity={0.8}
         >
-          <Text className={`font-sans-bold text-base ${canProceed ? "text-off-white" : "text-charcoal/40"}`}>
+          <Text className={`font-sans-bold text-base ${canProceed ? "text-off-white" : "text-off-white/40"}`}>
             {canProceed ? `Review Quote (${formatSGD(grandTotal)}) →` : "Select at least one item"}
           </Text>
         </TouchableOpacity>

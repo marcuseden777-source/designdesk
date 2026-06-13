@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "@/lib/api";
+import { AppBackdrop } from "@/components/AppBackdrop";
 
 interface DesignSession {
   id: string;
@@ -52,7 +53,7 @@ function SessionCard({ session, onPress }: { session: DesignSession; onPress: ()
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.75}
-      className="bg-white border border-charcoal/10 rounded-2xl overflow-hidden mb-4"
+      className="bg-off-white/[0.06] border border-off-white/12 rounded-2xl overflow-hidden mb-4"
     >
       {/* Image */}
       {imageUrl && !isDataUri ? (
@@ -62,15 +63,15 @@ function SessionCard({ session, onPress }: { session: DesignSession; onPress: ()
           resizeMode="cover"
         />
       ) : (
-        <View className="w-full h-40 bg-charcoal/5 items-center justify-center">
-          <Ionicons name="image-outline" size={32} color="#1a1a1a" style={{ opacity: 0.15 }} />
+        <View className="w-full h-40 bg-off-white/5 items-center justify-center">
+          <Ionicons name="image-outline" size={32} color="#fdfcf8" style={{ opacity: 0.2 }} />
         </View>
       )}
 
       {/* Info */}
       <View className="p-4">
         <View className="flex-row items-center justify-between mb-2">
-          <Text className="text-charcoal font-serif text-base">
+          <Text className="text-off-white font-serif text-base">
             {formatStyle(session.design_style_id)}
           </Text>
           <View style={{ backgroundColor: status.bg }} className="px-2.5 py-1 rounded-full">
@@ -83,19 +84,19 @@ function SessionCard({ session, onPress }: { session: DesignSession; onPress: ()
         <View className="flex-row items-center gap-3">
           {session.project_type && (
             <View className="flex-row items-center gap-1">
-              <Ionicons name="home-outline" size={12} color="#999" />
-              <Text className="text-charcoal/50 text-xs font-sans capitalize">{session.project_type}</Text>
+              <Ionicons name="home-outline" size={12} color="rgba(253,252,248,0.45)" />
+              <Text className="text-off-white/50 text-xs font-sans capitalize">{session.project_type}</Text>
             </View>
           )}
           {session.total_sqft && (
             <View className="flex-row items-center gap-1">
-              <Ionicons name="resize-outline" size={12} color="#999" />
-              <Text className="text-charcoal/50 text-xs font-sans">{session.total_sqft} sqft</Text>
+              <Ionicons name="resize-outline" size={12} color="rgba(253,252,248,0.45)" />
+              <Text className="text-off-white/50 text-xs font-sans">{session.total_sqft} sqft</Text>
             </View>
           )}
           <View className="flex-row items-center gap-1">
-            <Ionicons name="calendar-outline" size={12} color="#999" />
-            <Text className="text-charcoal/50 text-xs font-sans">{formatDate(session.created_at)}</Text>
+            <Ionicons name="calendar-outline" size={12} color="rgba(253,252,248,0.45)" />
+            <Text className="text-off-white/50 text-xs font-sans">{formatDate(session.created_at)}</Text>
           </View>
         </View>
       </View>
@@ -106,19 +107,19 @@ function SessionCard({ session, onPress }: { session: DesignSession; onPress: ()
 function EmptyState({ onNew }: { onNew: () => void }) {
   return (
     <View className="flex-1 items-center justify-center px-8 pt-16">
-      <View className="w-20 h-20 bg-charcoal/5 border border-charcoal/10 rounded-3xl items-center justify-center mb-5">
-        <Ionicons name="color-wand-outline" size={36} color="#999" />
+      <View className="w-20 h-20 bg-off-white/10 border border-off-white/15 rounded-3xl items-center justify-center mb-5">
+        <Ionicons name="color-wand-outline" size={36} color="rgba(253,252,248,0.5)" />
       </View>
-      <Text className="text-charcoal text-lg font-serif text-center mb-2">
+      <Text className="text-off-white text-lg font-serif text-center mb-2">
         No designs yet
       </Text>
-      <Text className="text-charcoal/50 text-sm font-sans text-center leading-relaxed mb-8">
+      <Text className="text-off-white/50 text-sm font-sans text-center leading-relaxed mb-8">
         Upload your first floor plan and let AI generate a styled interior design.
       </Text>
       <TouchableOpacity
         onPress={onNew}
         activeOpacity={0.85}
-        className="bg-terracotta px-6 py-3 rounded-2xl flex-row items-center gap-2"
+        className="bg-terracotta px-6 py-3 rounded-full flex-row items-center gap-2"
       >
         <Ionicons name="add" size={18} color="#fdfcf8" />
         <Text className="text-off-white text-sm font-sans-bold">Upload Floor Plan</Text>
@@ -153,19 +154,20 @@ export default function DesignHistoryScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-ink" edges={["top"]}>
+      <AppBackdrop />
       <View className="flex-row items-center justify-between px-5 pt-4 pb-5">
         <View className="flex-row items-center gap-3">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="w-9 h-9 bg-charcoal/5 border border-charcoal/10 rounded-full items-center justify-center"
+            className="w-9 h-9 bg-off-white/10 border border-off-white/15 rounded-full items-center justify-center"
           >
-            <Ionicons name="arrow-back" size={18} color="#1a1a1a" />
+            <Ionicons name="arrow-back" size={18} color="#fdfcf8" />
           </TouchableOpacity>
           <View>
-            <Text className="text-charcoal text-xl font-serif">Design History</Text>
+            <Text className="text-off-white text-xl font-serif">Design History</Text>
             {sessions.length > 0 && (
-              <Text className="text-charcoal/50 text-xs mt-0.5 font-sans">
+              <Text className="text-off-white/50 text-xs mt-0.5 font-sans">
                 {sessions.length} {sessions.length === 1 ? "session" : "sessions"}
               </Text>
             )}
@@ -173,15 +175,15 @@ export default function DesignHistoryScreen() {
         </View>
         <TouchableOpacity
           onPress={() => router.push("/(app)/design/upload")}
-          className="w-9 h-9 bg-terracotta/10 border border-terracotta/30 rounded-full items-center justify-center"
+          className="w-9 h-9 bg-terracotta/15 border border-terracotta/35 rounded-full items-center justify-center"
         >
-          <Ionicons name="add" size={20} color="#b85c38" />
+          <Ionicons name="add" size={20} color="#d98b6a" />
         </TouchableOpacity>
       </View>
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#b85c38" size="large" />
+          <ActivityIndicator color="#d98b6a" size="large" />
         </View>
       ) : sessions.length === 0 ? (
         <EmptyState onNew={() => router.push("/(app)/design/upload")} />
@@ -201,7 +203,7 @@ export default function DesignHistoryScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#b85c38"
+              tintColor="#d98b6a"
             />
           }
         />
