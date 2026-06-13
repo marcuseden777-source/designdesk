@@ -1,5 +1,6 @@
+import Anthropic from "@anthropic-ai/sdk";
 import { supabaseAdmin } from "../lib/supabase";
-import { QuoteLineItem, Quotation } from "../types";
+import { QuoteLineItem, Quotation, FloorPlanAnalysis } from "../types";
 
 // ─── Fetch all pricing data from Supabase ─────────────────────────────────────
 
@@ -273,4 +274,134 @@ export async function explainQuoteItem(p: {
   if (!res.ok) throw new Error(`Explanation failed (NIM ${res.status}).`);
   const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
   return (data.choices?.[0]?.message?.content ?? "").trim();
+}
+
+// ─── AI: suggest a quotation from a generated design ──────────────────────────
+//
+// Given a design session (floor-plan rooms + areas + chosen style) and the
+// designer's own item library, Claude proposes which library items each room
+// needs and a starting quantity. It ONLY references real library ids/tiers —
+// rates are never invented; the frontend resolves ids back to its library and
+// computes the line totals. This is the "quote the rendered design" layer.
+
+export interface LibraryItemForAI {
+  id: string;
+  name: string;
+  category: string;
+  unit: string;
+  tiers: { key: string; label: string; rate: number }[];
+}
+
+export interface QuoteSuggestion {
+  template_id: string;
+  tier_key: string;
+  room: string;
+  quantity: number;
+}
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+export async function suggestQuoteFromDesign(
+  designerId: string,
+  sessionId: string,
+  library: LibraryItemForAI[]
+): Promise<{ suggestions: QuoteSuggestion[]; rooms: string[]; total_sqft: number | null; style: string | null }> {
+  // 1. Load the session (must belong to this designer)
+  const { data: session, error } = await supabaseAdmin
+    .from("design_sessions")
+    .select("floor_plan_analysis, design_style_id, selected_rooms, total_sqft")
+    .eq("id", sessionId)
+    .eq("designer_id", designerId)
+    .single();
+
+  if (error || !session?.floor_plan_analysis) {
+    throw new Error("Design session not found or has no floor-plan analysis");
+  }
+
+  const analysis = session.floor_plan_analysis as FloorPlanAnalysis;
+  const selected: string[] = Array.isArray(session.selected_rooms) ? session.selected_rooms : [];
+
+  // Scope to the rooms the designer chose to render (fall back to all rooms).
+  const rooms = (analysis.rooms ?? []).filter(
+    (r) => selected.length === 0 || selected.includes(r.name)
+  );
+  if (rooms.length === 0) throw new Error("No rooms available to quote");
+
+  // 2. Build a compact, grounded prompt. The model may ONLY use these ids.
+  const libraryText = library
+    .map(
+      (it) =>
+        `- ${it.id} | "${it.name}" | ${it.category} | per ${it.unit} | tiers: ${it.tiers
+          .map((t) => `${t.key}=${t.label} ($${t.rate}/${it.unit})`)
+          .join(", ")}`
+    )
+    .join("\n");
+
+  const roomsText = rooms
+    .map((r) => `- "${r.name}" | type: ${r.type} | ~${r.estimated_sqft ?? "?"} sqft${r.is_wet_area ? " | wet area" : ""}`)
+    .join("\n");
+
+  const validIds = new Set(library.map((l) => l.id));
+  const tierKeysById = new Map(library.map((l) => [l.id, new Set(l.tiers.map((t) => t.key))]));
+
+  const system = `You are a senior Singapore interior designer preparing an itemised renovation quotation from a floor plan and a chosen design style. You will be given the designer's item LIBRARY and the project's ROOMS. For each room, select the library items that room realistically needs and give a sensible starting quantity.
+
+STRICT RULES:
+- Only use template_id values that appear in the LIBRARY. Never invent items or ids.
+- tier_key must be one of that item's listed tier keys. Prefer a mid/standard tier unless the style implies luxury.
+- quantity is a number in the item's unit. For "sqft" items use roughly the room's area; for "ftrun" (running feet) estimate wall/cabinet run (a square room of A sqft has perimeter ~4·sqrt(A)); for "nos"/"lot" use a realistic count.
+- room must be one of the exact room names provided.
+- Be practical and complete but do not pad: a bedroom needs flooring, wardrobe, ceiling, paint, lights, aircon; a kitchen needs tiling, cabinetry, worktop, sink, waterproofing; a bathroom needs tiling, waterproofing, WC, shower, vanity. Skip items a room clearly doesn't need.
+- Output ONLY a JSON object, no markdown fences, of the form:
+{"suggestions":[{"template_id":"...","tier_key":"...","room":"...","quantity":0}]}`;
+
+  const user = `STYLE: ${session.design_style_id ?? "unspecified"}
+TOTAL AREA: ${session.total_sqft ?? analysis.total_estimated_sqft ?? "unknown"} sqft
+
+ROOMS:
+${roomsText}
+
+LIBRARY (choose only from these ids):
+${libraryText}
+
+Return the JSON now.`;
+
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 4096,
+    system,
+    messages: [{ role: "user", content: user }],
+  });
+
+  const raw = response.content[0]?.type === "text" ? response.content[0].text : "";
+  const text = raw.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "").trim();
+
+  let parsed: { suggestions?: QuoteSuggestion[] };
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error(`AI returned invalid JSON: ${raw.slice(0, 160)}`);
+  }
+
+  const roomNames = new Set(rooms.map((r) => r.name));
+
+  // 3. Validate every suggestion against the real library + rooms; drop bad rows.
+  const suggestions = (parsed.suggestions ?? []).filter((s) => {
+    if (!s || typeof s.template_id !== "string") return false;
+    if (!validIds.has(s.template_id)) return false;
+    if (!tierKeysById.get(s.template_id)?.has(s.tier_key)) return false;
+    if (!roomNames.has(s.room)) return false;
+    return Number(s.quantity) > 0;
+  }).map((s) => ({ ...s, quantity: Math.round(Number(s.quantity)) }));
+
+  if (suggestions.length === 0) {
+    throw new Error("AI produced no valid line items for this design");
+  }
+
+  return {
+    suggestions,
+    rooms: rooms.map((r) => r.name),
+    total_sqft: session.total_sqft ?? analysis.total_estimated_sqft ?? null,
+    style: session.design_style_id ?? null,
+  };
 }

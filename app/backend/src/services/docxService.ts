@@ -122,7 +122,12 @@ export async function generateDocx(q: Quotation): Promise<Buffer> {
     for (const item of items) {
       const itemChildren = [
         new Paragraph({
-          children: [new TextRun({ text: item.item_name, color: INK, size: 20 })],
+          children: [
+            new TextRun({ text: item.item_name, color: INK, size: 20 }),
+            ...(item.room
+              ? [new TextRun({ text: `   ${item.room}`, color: GOLD, size: 14, allCaps: true })]
+              : []),
+          ],
         }),
       ];
       if (item.notes) {

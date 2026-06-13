@@ -224,6 +224,19 @@ export default function DesignUploadScreen() {
     });
   }
 
+  // Itemise a quotation from this rendered design using the AI suggestion layer.
+  // (pathname cast: typed-routes union regenerates to include /quote/from-design on next Expo run)
+  function handleQuoteWithAI() {
+    router.push({
+      pathname: "/(app)/quote/from-design" as any,
+      params: {
+        session_id: sessionId ?? "",
+        project_type: projectType,
+        sqft: totalSqft,
+      },
+    });
+  }
+
   function toggleRoom(name: string) {
     setSelectedRooms((prev) =>
       prev.includes(name) ? prev.filter((r) => r !== name) : [...prev, name]
@@ -569,20 +582,29 @@ export default function DesignUploadScreen() {
 
           <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-off-white border-t border-charcoal/10 gap-3">
             <TouchableOpacity
-              onPress={handleStartQuotation}
+              onPress={handleQuoteWithAI}
               className="bg-terracotta py-4 rounded-xl items-center flex-row justify-center gap-2"
               activeOpacity={0.8}
             >
-              <Ionicons name="calculator-outline" size={18} color="#fdfcf8" />
-              <Text className="text-off-white font-sans-bold text-base">Start Quotation</Text>
+              <Ionicons name="sparkles" size={18} color="#fdfcf8" />
+              <Text className="text-off-white font-sans-bold text-base">Quote This Design with AI</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setStep("style")}
-              className="bg-white py-3.5 rounded-xl items-center border border-charcoal/10"
-              activeOpacity={0.8}
-            >
-              <Text className="text-charcoal font-sans">Try a Different Style</Text>
-            </TouchableOpacity>
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                onPress={handleStartQuotation}
+                className="flex-1 bg-white py-3.5 rounded-xl items-center border border-charcoal/10"
+                activeOpacity={0.8}
+              >
+                <Text className="text-charcoal font-sans">Quote Manually</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setStep("style")}
+                className="flex-1 bg-white py-3.5 rounded-xl items-center border border-charcoal/10"
+                activeOpacity={0.8}
+              >
+                <Text className="text-charcoal font-sans">Different Style</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </>
       )}

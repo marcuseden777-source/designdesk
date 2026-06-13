@@ -33,6 +33,7 @@ type Action =
   | { type: "SET_PROJECT"; project_type: QuoteState["project_type"]; total_sqft: number }
   | { type: "SET_ROOMS"; rooms: string[] }
   | { type: "ADD_LINE_ITEM"; item: LineItemPayload }
+  | { type: "SEED_LINE_ITEMS"; items: LineItemPayload[] }
   | { type: "REMOVE_LINE_ITEM"; item_id: number; room: string | null }
   | { type: "UPDATE_QUANTITY"; item_id: number; room: string | null; quantity: number }
   | { type: "SET_CATALOG"; catalog: CatalogCategory[] }
@@ -64,6 +65,8 @@ function reducer(state: QuoteState, action: Action): QuoteState {
       return { ...state, rooms: action.rooms };
     case "ADD_LINE_ITEM":
       return { ...state, line_items: [...state.line_items, action.item] };
+    case "SEED_LINE_ITEMS":
+      return { ...state, line_items: action.items };
     case "REMOVE_LINE_ITEM":
       return {
         ...state,

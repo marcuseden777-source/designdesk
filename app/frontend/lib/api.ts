@@ -60,6 +60,13 @@ export const api = {
       body: JSON.stringify(payload),
     }).then((r) => r.explanation),
 
+  // AI — itemise a quotation from a generated design (rooms + style → line items)
+  suggestQuoteFromDesign: (payload: { session_id: string; library: SuggestLibraryItem[] }) =>
+    request<SuggestQuoteResponse>("/api/quotation/suggest", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
   // Exports — backend streams the file; helpers download/share it
   getPdfUrl: (id: string) => `${BASE_URL}/api/quotation/${id}/pdf`,
   getDocxUrl: (id: string) => `${BASE_URL}/api/quotation/${id}/docx`,
@@ -125,6 +132,29 @@ export interface CreateQuotationPayload {
   rooms: string[];
   line_items: LineItemPayload[];
   design_session_id?: string;
+}
+
+/** Compact library item sent to the AI for design→quote grounding. */
+export interface SuggestLibraryItem {
+  id: string;
+  name: string;
+  category: string;
+  unit: string;
+  tiers: { key: string; label: string; rate: number }[];
+}
+
+export interface QuoteSuggestion {
+  template_id: string;
+  tier_key: string;
+  room: string;
+  quantity: number;
+}
+
+export interface SuggestQuoteResponse {
+  suggestions: QuoteSuggestion[];
+  rooms: string[];
+  total_sqft: number | null;
+  style: string | null;
 }
 
 export interface LineItemPayload {

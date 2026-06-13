@@ -18,10 +18,15 @@ import {
   QUOTE_CATEGORIES,
   UNIT_LABEL,
   categoryOf,
+  ROOM_SUGGESTIONS,
+  roomTypeFromName,
+  quantityFor,
+  getTemplateById,
   type QuoteItemTemplate,
   type QuoteTier,
 } from "@/lib/quoteTemplates";
 import { loadTemplates, type LibraryTemplate } from "@/lib/quoteLibrary";
+import type { LineItemPayload } from "@/lib/api";
 
 /* -------------------------------------------------------------------------- */
 /*  Measurement control — drag left/right to set sqft / ft-run, or count nos   */
@@ -331,6 +336,12 @@ export default function QuoteBuilderScreen() {
   const [active, setActive] = useState<QuoteItemTemplate | null>(null);
   const [justAdded, setJustAdded] = useState<string | null>(null);
   const [allTemplates, setAllTemplates] = useState<LibraryTemplate[]>([]);
+  // Room scaffolding: the room new items are filed under, plus quick bulk-add.
+  const [activeRoom, setActiveRoom] = useState<string | null>(() => state.rooms[0] ?? null);
+  const hasRooms = state.rooms.length > 0;
+  // Rough per-room area so scaffolded quantities start sensibly.
+  const perRoomSqft =
+    state.total_sqft && hasRooms ? state.total_sqft / state.rooms.length : null;
 
   // Reload from the library whenever the screen regains focus, so items created
   // in the template builder appear immediately.
@@ -348,25 +359,53 @@ export default function QuoteBuilderScreen() {
   const subtotal = getSubtotal(state.line_items);
   const count = state.line_items.length;
 
+  function lineItemFor(
+    tpl: QuoteItemTemplate,
+    tier: QuoteTier,
+    amount: number,
+    room: string | null,
+    notes?: string,
+    seq = 0
+  ): LineItemPayload {
+    return {
+      item_id: Date.now() + seq,
+      item_name: `${tpl.name} (${tier.label})`,
+      category: categoryOf(tpl.category).label,
+      room,
+      quantity: amount,
+      unit: UNIT_LABEL[tpl.unit],
+      unit_rate: tier.rate,
+      total_amount: Math.round(tier.rate * amount * 100) / 100,
+      selected_tier: tier.label,
+      notes: notes || tpl.defaultNotes || undefined,
+    };
+  }
+
   function addToQuote(tpl: QuoteItemTemplate, tier: QuoteTier, amount: number, notes: string) {
-    dispatch({
-      type: "ADD_LINE_ITEM",
-      item: {
-        item_id: Date.now(),
-        item_name: `${tpl.name} (${tier.label})`,
-        category: categoryOf(tpl.category).label,
-        room: null,
-        quantity: amount,
-        unit: UNIT_LABEL[tpl.unit],
-        unit_rate: tier.rate,
-        total_amount: Math.round(tier.rate * amount * 100) / 100,
-        selected_tier: tier.label,
-        notes: notes || undefined,
-      },
-    });
+    dispatch({ type: "ADD_LINE_ITEM", item: lineItemFor(tpl, tier, amount, activeRoom, notes) });
     setActive(null);
     setJustAdded(tpl.name);
     setTimeout(() => setJustAdded(null), 1800);
+  }
+
+  // One-tap room scaffold: bulk-add the typical items for the active room's type,
+  // sized from its area. Skips items already present in that room.
+  function scaffoldRoom(room: string) {
+    const suggestions = ROOM_SUGGESTIONS[roomTypeFromName(room)] ?? [];
+    const existing = new Set(
+      state.line_items.filter((i) => i.room === room).map((i) => i.item_name.split(" (")[0])
+    );
+    let added = 0;
+    suggestions.forEach((s, idx) => {
+      const tpl = getTemplateById(s.templateId);
+      if (!tpl || existing.has(tpl.name)) return;
+      const tier = tpl.tiers[0];
+      const qty = quantityFor(s.qty, perRoomSqft);
+      dispatch({ type: "ADD_LINE_ITEM", item: lineItemFor(tpl, tier, qty, room, undefined, idx + 1) });
+      added += 1;
+    });
+    setJustAdded(added > 0 ? `${room}: ${added} item${added === 1 ? "" : "s"} scaffolded` : `${room} already scaffolded`);
+    setTimeout(() => setJustAdded(null), 2200);
   }
 
   return (
@@ -382,8 +421,50 @@ export default function QuoteBuilderScreen() {
         </View>
       </View>
       <Text className="text-charcoal/50 text-sm px-5 mb-4">
-        Tap any item to add it — no typing required.
+        {hasRooms
+          ? `Tap an item to add it to ${activeRoom ?? "the quote"}.`
+          : "Tap any item to add it — no typing required."}
       </Text>
+
+      {/* Room strip — file items by room + one-tap scaffold (Phase 3) */}
+      {hasRooms && (
+        <View className="mb-3">
+          <View className="flex-row items-center justify-between px-5 mb-2">
+            <Text className="text-charcoal/50 text-xs tracking-widest uppercase">Room</Text>
+            {activeRoom && (
+              <TouchableOpacity
+                onPress={() => scaffoldRoom(activeRoom)}
+                className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-terracotta/10 border border-terracotta/30"
+              >
+                <Ionicons name="construct-outline" size={13} color="#b85c38" />
+                <Text className="text-terracotta text-xs font-sans-semibold">Auto-scaffold {activeRoom}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}>
+            {state.rooms.map((r) => {
+              const on = activeRoom === r;
+              const n = state.line_items.filter((i) => i.room === r).length;
+              return (
+                <TouchableOpacity
+                  key={r}
+                  onPress={() => setActiveRoom(r)}
+                  className={`flex-row items-center gap-1.5 px-4 py-2 rounded-full border ${
+                    on ? "bg-terracotta border-terracotta" : "bg-off-white border-charcoal/15"
+                  }`}
+                >
+                  <Text className={on ? "text-off-white text-sm" : "text-charcoal text-sm"}>{r}</Text>
+                  {n > 0 && (
+                    <View className={`px-1.5 rounded-full ${on ? "bg-off-white/25" : "bg-charcoal/10"}`}>
+                      <Text className={`text-[10px] ${on ? "text-off-white" : "text-charcoal/60"}`}>{n}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
 
       {/* Category filter */}
       <View className="mb-3">

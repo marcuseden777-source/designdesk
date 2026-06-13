@@ -45,5 +45,23 @@ repository and refreshes on focus; custom cards are editable (pencil/long-press)
 deletable. *Deferred:* backend sync to `/api/quotation/templates` (currently
 device-local AsyncStorage).
 
-**Phase 3** — Drag-drop room/template scaffolding; Word (.docx) + editable export;
-saved per-client "quote templates"; backend template sync (cross-device).
+**Phase 3 (done)** — Room scaffolding + the design→quote layer + a bigger library:
+- **Word (.docx) editable export** — `docxService.ts` + `GET /:id/docx`, with PDF +
+  Word buttons in `review.tsx`. (commit 00357d9)
+- **Library expansion** — `quoteTemplates.ts` grew from 10 → 30 seed items across
+  11 categories (added Ceiling & Partition, Hacking & Masonry, Glass & Aluminium,
+  Air-Con, Soft Furnishing). Added `ROOM_SUGGESTIONS` (room-type → typical items +
+  qty sizing), `roomTypeFromName`, `quantityFor`, `getTemplateById`.
+- **Room scaffolding** (in place of literal drag-drop, which is poor on touch):
+  `builder.tsx` gains an active-room strip (per-room item counts) — tapped items
+  file under that room — plus one-tap **Auto-scaffold** that bulk-adds a room's
+  typical items, sized from area. Room shown in review + PDF + DOCX.
+- **Quote the rendered design** (the new layer): `POST /api/quotation/suggest`
+  (`suggestQuoteFromDesign`) reads a design session's rooms/sqft/style and the
+  designer's own library, and Claude proposes line items per room — grounded in
+  real library ids/rates, never invented. `quote/from-design.tsx` resolves the
+  suggestions to line items, seeds the quote, and hands off to client capture →
+  builder. Entry point: "Quote This Design with AI" on the design result screen.
+
+*Still deferred:* saved per-client "quote templates" (whole-quote bundles);
+backend template sync (the item library is still device-local AsyncStorage).

@@ -9,6 +9,8 @@ import {
   updateQuotation,
   updateQuotationStatus,
   explainQuoteItem,
+  suggestQuoteFromDesign,
+  type LibraryItemForAI,
 } from "../services/quotationService";
 import { generatePDF } from "../services/pdfService";
 import { generateDocx } from "../services/docxService";
@@ -180,6 +182,31 @@ router.post("/explain", requireAuth, async (req: Request, res: Response): Promis
   } catch (err: any) {
     Sentry.captureException(err);
     res.status(500).json({ error: err.message ?? "Explanation failed" });
+  }
+});
+
+// POST /api/quotation/suggest — AI-itemise a quotation from a generated design.
+// Body: { session_id: string, library: LibraryItemForAI[] }
+router.post("/suggest", heavyLimiter, requireAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { session_id, library } = req.body ?? {};
+    if (!session_id || typeof session_id !== "string") {
+      res.status(400).json({ error: "session_id is required" });
+      return;
+    }
+    if (!Array.isArray(library) || library.length === 0) {
+      res.status(400).json({ error: "library is required" });
+      return;
+    }
+    const result = await suggestQuoteFromDesign(
+      req.userId,
+      session_id,
+      library as LibraryItemForAI[]
+    );
+    res.json(result);
+  } catch (err: any) {
+    Sentry.captureException(err);
+    res.status(500).json({ error: err.message ?? "Suggestion failed" });
   }
 });
 
