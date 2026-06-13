@@ -9,7 +9,7 @@ export function DashboardSkeleton() {
   return (
     <SafeAreaView className="flex-1 bg-off-white" edges={["top"]}>
       {/* Hero skeleton */}
-      <View className="w-full bg-charcoal p-8 pt-12">
+      <View className="w-full bg-charcoal p-8 pt-12 rounded-b-[32px]">
         <Bone className="h-3 w-24 bg-off-white/10 mb-3" />
         <Bone className="h-10 w-48 bg-off-white/15" />
       </View>
@@ -28,8 +28,8 @@ export function DashboardSkeleton() {
 
       {/* Action buttons skeleton */}
       <View className="flex-row px-5 mt-4 gap-4">
-        <Bone className="flex-1 h-12 rounded-xl" />
-        <Bone className="flex-1 h-12 rounded-xl" />
+        <Bone className="flex-1 h-12 rounded-full" />
+        <Bone className="flex-1 h-12 rounded-full" />
       </View>
 
       {/* Recent work skeleton */}

@@ -8,25 +8,24 @@ type ButtonProps = {
 };
 
 export const Button = ({ title, variant, onPress }: ButtonProps) => {
-  // Sharp edges: rounded-none
-  // Font: font-sans (Montserrat)
-  const baseStyle = "px-6 py-3 items-center justify-center rounded-none";
+  // Pill buttons to match the brand front-end (rounded-full, like the landing CTA).
+  const baseStyle = "px-6 py-3.5 items-center justify-center rounded-full active:opacity-90";
 
   const variantStyle = variant === 'primary'
     ? "bg-terracotta"
     : "border border-charcoal bg-transparent";
 
   const textStyle = variant === 'primary'
-    ? "text-white uppercase font-bold"
-    : "text-charcoal uppercase font-bold";
+    ? "text-off-white"
+    : "text-charcoal";
 
   return (
     <TouchableOpacity
       onPress={onPress}
       className={`${baseStyle} ${variantStyle}`}
-      activeOpacity={0.7}
+      activeOpacity={0.85}
     >
-      <Text className={`${textStyle} font-sans`}>{title}</Text>
+      <Text className={`${textStyle} font-sans-semibold tracking-wide`}>{title}</Text>
     </TouchableOpacity>
   );
 };

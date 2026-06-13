@@ -47,7 +47,7 @@ export default function DashboardScreen() {
         contentContainerStyle={{ paddingBottom: 32 }}
       >
         {/* ── Editorial Hero ── */}
-        <View className="w-full bg-charcoal p-8 pt-12">
+        <View className="w-full bg-charcoal p-8 pt-12 rounded-b-[32px]">
           <View className="flex-row justify-between items-start mb-4">
             <View>
               <Text className="text-off-white/60 text-sm font-sans tracking-widest uppercase mb-2">
@@ -78,7 +78,7 @@ export default function DashboardScreen() {
             {/* ── Design history link ── */}
             <TouchableOpacity
               onPress={() => router.push("/(app)/design/history" as any)}
-              className="mx-5 mb-6 flex-row items-center justify-between bg-white border border-charcoal/10 rounded-xl px-4 py-3"
+              className="mx-5 mb-6 flex-row items-center justify-between bg-white border border-charcoal/10 rounded-2xl px-4 py-3.5"
               activeOpacity={0.7}
             >
               <View className="flex-row items-center gap-2">
@@ -127,7 +127,7 @@ export default function DashboardScreen() {
                     </Text>
                     <TouchableOpacity
                       onPress={() => router.push("/(app)/design/upload")}
-                      className="bg-terracotta rounded-xl py-3 items-center"
+                      className="bg-terracotta rounded-full py-3.5 items-center"
                     >
                       <Text className="text-off-white font-sans-semibold text-sm">Design Mode</Text>
                     </TouchableOpacity>
@@ -143,7 +143,7 @@ export default function DashboardScreen() {
                     </Text>
                     <TouchableOpacity
                       onPress={() => router.push("/(app)/quote/new")}
-                      className="bg-terracotta rounded-xl py-3 items-center"
+                      className="bg-terracotta rounded-full py-3.5 items-center"
                     >
                       <Text className="text-off-white font-sans-semibold text-sm">Quote Mode</Text>
                     </TouchableOpacity>

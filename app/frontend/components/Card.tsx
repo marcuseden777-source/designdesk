@@ -12,13 +12,13 @@ interface CardProps {
 export const Card = ({ imageSource, title, metadata, onPress }: CardProps) => {
   return (
     <View className="relative w-full overflow-hidden">
-      {/* Offset layer for structure */}
-      <View className="absolute top-2 left-2 w-full h-full bg-charcoal rounded-[2px] opacity-10" />
+      {/* Soft offset shadow layer for depth */}
+      <View className="absolute top-2 left-2 w-full h-full bg-charcoal rounded-2xl opacity-10" />
 
       <TouchableOpacity
         onPress={onPress}
-        activeOpacity={0.8}
-        className="w-full rounded-[2px] overflow-hidden border border-charcoal/10"
+        activeOpacity={0.85}
+        className="w-full rounded-2xl overflow-hidden border border-charcoal/10"
       >
         {/* Edge-to-edge image or placeholder */}
         {imageSource ? (
