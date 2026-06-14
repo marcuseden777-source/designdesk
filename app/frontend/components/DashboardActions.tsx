@@ -9,7 +9,7 @@ interface DashboardActionsProps {
 
 export const DashboardActions: React.FC<DashboardActionsProps> = ({ onNewDesign, onNewQuote }) => {
   return (
-    <View className="w-full bg-charcoal p-5 flex-row gap-4">
+    <View className="mx-5 mt-4 mb-1 flex-row gap-3">
       <View className="flex-1">
         <Button variant="primary" onPress={onNewDesign} title="New Design" />
       </View>

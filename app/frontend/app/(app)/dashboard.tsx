@@ -118,8 +118,8 @@ export default function DashboardScreen() {
                   Your AI-powered interior design studio. Get started in two ways:
                 </Text>
 
-                <View className="flex-row gap-4">
-                  <View className="flex-1 bg-off-white/[0.05] border border-off-white/12 rounded-2xl p-5">
+                <View className="gap-4">
+                  <View className="bg-off-white/[0.05] border border-off-white/12 rounded-2xl p-5">
                     <Ionicons name="color-wand-outline" size={28} color="#d98b6a" />
                     <Text className="font-serif text-lg text-off-white mt-3 mb-1">
                       Upload a Floor Plan
@@ -135,7 +135,7 @@ export default function DashboardScreen() {
                     </TouchableOpacity>
                   </View>
 
-                  <View className="flex-1 bg-off-white/[0.05] border border-off-white/12 rounded-2xl p-5">
+                  <View className="bg-off-white/[0.05] border border-off-white/12 rounded-2xl p-5">
                     <Ionicons name="calculator-outline" size={28} color="#d98b6a" />
                     <Text className="font-serif text-lg text-off-white mt-3 mb-1">
                       Create a Quotation

@@ -8,7 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "@/lib/api";
 import { exportPdf } from "@/lib/pdfExport";
@@ -130,6 +130,7 @@ const NEXT_STATUS: Record<string, { action: string; target: "sent" | "accepted" 
 export default function QuoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [quote, setQuote] = useState<Quotation | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -297,7 +298,7 @@ export default function QuoteDetailScreen() {
       </ScrollView>
 
       {/* ── Sticky action bar ── */}
-      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-ink/85 border-t border-off-white/10 gap-2.5">
+      <View className="absolute bottom-0 left-0 right-0 px-5 pt-4 bg-ink/85 border-t border-off-white/10 gap-2.5" style={{ paddingBottom: insets.bottom + 20 }}>
         {/* Status transition buttons */}
         {(NEXT_STATUS[quote.status] ?? []).map((t) => (
           <TouchableOpacity

@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, ScrollView, ActivityIndicator,
   Alert, Image, TextInput, KeyboardAvoidingView, Platform, Dimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -112,6 +112,7 @@ type Step = "upload" | "analyzing" | "confirm" | "style" | "generating" | "resul
 
 export default function DesignUploadScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [step, setStep]                   = useState<Step>("upload");
   const [imageUri, setImageUri]           = useState<string | null>(null);
@@ -473,7 +474,7 @@ export default function DesignUploadScreen() {
             )}
           </ScrollView>
 
-          <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-ink/80 border-t border-off-white/10">
+          <View className="absolute bottom-0 left-0 right-0 px-5 pt-4 bg-ink/80 border-t border-off-white/10" style={{ paddingBottom: insets.bottom + 20 }}>
             <TouchableOpacity
               onPress={() => setStep("style")}
               disabled={selectedRooms.length === 0}
@@ -528,7 +529,7 @@ export default function DesignUploadScreen() {
             </View>
           </ScrollView>
 
-          <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-ink/80 border-t border-off-white/10">
+          <View className="absolute bottom-0 left-0 right-0 px-5 pt-4 bg-ink/80 border-t border-off-white/10" style={{ paddingBottom: insets.bottom + 20 }}>
             <TouchableOpacity
               onPress={handleGenerate}
               disabled={!selectedStyle}
@@ -582,7 +583,7 @@ export default function DesignUploadScreen() {
             )}
           </ScrollView>
 
-          <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-ink/80 border-t border-off-white/10 gap-3">
+          <View className="absolute bottom-0 left-0 right-0 px-5 pt-4 bg-ink/80 border-t border-off-white/10 gap-3" style={{ paddingBottom: insets.bottom + 20 }}>
             <TouchableOpacity
               onPress={handleQuoteWithAI}
               className="bg-terracotta py-4 rounded-xl items-center flex-row justify-center gap-2"

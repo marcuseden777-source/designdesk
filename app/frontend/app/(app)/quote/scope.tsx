@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, TouchableOpacity, ScrollView, TextInput } from "react-native";
 import { Text } from "@/components/Text";
 import { useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuote, formatSGD } from "@/lib/quoteContext";
 import { CatalogItem, LineItemPayload } from "@/lib/api";
@@ -17,6 +17,7 @@ const RESIDENTIAL_CATS = [
 
 export default function ScopeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { state, dispatch } = useQuote();
   const [activeRoom, setActiveRoom] = useState(state.rooms[0] ?? "");
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
@@ -206,7 +207,7 @@ export default function ScopeScreen() {
       </ScrollView>
 
       {/* Sticky CTA */}
-      <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-ink/80 border-t border-off-white/10">
+      <View className="absolute bottom-0 left-0 right-0 px-5 pt-4 bg-ink/80 border-t border-off-white/10" style={{ paddingBottom: insets.bottom + 20 }}>
         <TouchableOpacity
           onPress={() => { if (canProceed) router.push("/(app)/quote/review"); }}
           disabled={!canProceed}
