@@ -43,6 +43,7 @@ router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Re
     //     unavailable or errors, so generation never goes down.
     let generatedResult: string;
     let mode: "kontext-layout-preserving" | "flux-text-to-image";
+    let fallbackReason: string | undefined;
     if (session.floor_plan_url && process.env.REPLICATE_API_TOKEN) {
       try {
         generatedResult = await generateDesignWithKontext(
@@ -55,6 +56,7 @@ router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Re
         );
         mode = "kontext-layout-preserving";
       } catch (kontextErr: any) {
+        fallbackReason = kontextErr?.message ?? String(kontextErr);
         console.warn("Kontext (layout-preserving) failed, falling back to FLUX text-to-image:", kontextErr?.message);
         Sentry.captureException(kontextErr);
         generatedResult = await generateDesign(
@@ -120,7 +122,7 @@ router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Re
       })
       .eq("id", session_id);
 
-    res.json({ design_url: permanentUrl, mode });
+    res.json({ design_url: permanentUrl, mode, ...(fallbackReason ? { fallback_reason: fallbackReason } : {}) });
   } catch (err: any) {
     console.error("Design generation error:", err);
     Sentry.captureException(err);
