@@ -252,31 +252,43 @@ async function buildKontextInstructionWithClaude(
   }
 }
 
-/**
- * Restyle the uploaded floor plan with FLUX Kontext (preserves layout).
- * Returns a data: URI. Throws if Replicate is unavailable or errors — the
- * caller falls back to text-to-image generation.
- */
-export async function generateDesignWithKontext(
-  floorPlanUrl: string,
-  analysis: FloorPlanAnalysis,
-  style: DesignStyle,
-  selectedRooms: string[],
-  projectType: string,
-  totalSqft: number | null
-): Promise<string> {
-  const token = process.env.REPLICATE_API_TOKEN;
-  if (!token) throw new Error("REPLICATE_API_TOKEN is not configured");
+const FAL_KONTEXT_URL = "https://fal.run/fal-ai/flux-kontext/dev";
 
-  const instruction = await buildKontextInstructionWithClaude(
-    analysis,
-    style,
-    selectedRooms,
-    projectType,
-    totalSqft
-  );
+async function downloadAsDataUri(imageUrl: string): Promise<string> {
+  const r = await fetch(imageUrl);
+  if (!r.ok) throw new Error(`Failed to download Kontext image (${r.status})`);
+  const buffer = Buffer.from(await r.arrayBuffer());
+  return `data:image/jpeg;base64,${buffer.toString("base64")}`;
+}
 
-  const replicate = new Replicate({ auth: token });
+// fal.ai FLUX Kontext — image_url accepts the public Supabase floor-plan URL.
+async function falKontextRestyle(floorPlanUrl: string, instruction: string): Promise<string> {
+  const res = await fetch(FAL_KONTEXT_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Key ${process.env.FAL_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      prompt: instruction,
+      image_url: floorPlanUrl,
+      num_inference_steps: 30,
+      guidance_scale: 2.5,
+      output_format: "jpeg",
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`fal Kontext error (${res.status}): ${(await res.text()).slice(0, 200)}`);
+  }
+  const data: any = await res.json();
+  const url = data?.images?.[0]?.url;
+  if (!url) throw new Error("fal Kontext returned no image");
+  return downloadAsDataUri(url);
+}
+
+// Replicate FLUX Kontext — input_image accepts the public floor-plan URL.
+async function replicateKontextRestyle(floorPlanUrl: string, instruction: string): Promise<string> {
+  const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
   const output = await replicate.run(KONTEXT_MODEL, {
     input: {
       prompt: instruction,
@@ -286,16 +298,36 @@ export async function generateDesignWithKontext(
       num_inference_steps: 30,
     },
   });
-
   // replicate@1.x returns a FileOutput (or array of them); normalise to a URL.
   const first: any = Array.isArray(output) ? output[0] : output;
   const imageUrl =
     first && typeof first.url === "function" ? String(first.url()) : String(first);
+  return downloadAsDataUri(imageUrl);
+}
 
-  const imgResponse = await fetch(imageUrl);
-  if (!imgResponse.ok) {
-    throw new Error(`Failed to download Kontext image (${imgResponse.status})`);
-  }
-  const buffer = Buffer.from(await imgResponse.arrayBuffer());
-  return `data:image/jpeg;base64,${buffer.toString("base64")}`;
+/**
+ * Restyle the uploaded floor plan with FLUX Kontext (preserves layout).
+ * Returns a data: URI. Dispatches to fal.ai (preferred) or Replicate depending
+ * on which key is configured. Throws if neither is available or the call errors
+ * — the caller falls back to text-to-image generation.
+ */
+export async function generateDesignWithKontext(
+  floorPlanUrl: string,
+  analysis: FloorPlanAnalysis,
+  style: DesignStyle,
+  selectedRooms: string[],
+  projectType: string,
+  totalSqft: number | null
+): Promise<string> {
+  const instruction = await buildKontextInstructionWithClaude(
+    analysis,
+    style,
+    selectedRooms,
+    projectType,
+    totalSqft
+  );
+
+  if (process.env.FAL_KEY) return falKontextRestyle(floorPlanUrl, instruction);
+  if (process.env.REPLICATE_API_TOKEN) return replicateKontextRestyle(floorPlanUrl, instruction);
+  throw new Error("No img2img provider configured (set FAL_KEY or REPLICATE_API_TOKEN)");
 }

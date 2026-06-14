@@ -44,7 +44,7 @@ router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Re
     let generatedResult: string;
     let mode: "kontext-layout-preserving" | "flux-text-to-image";
     let fallbackReason: string | undefined;
-    if (session.floor_plan_url && process.env.REPLICATE_API_TOKEN) {
+    if (session.floor_plan_url && (process.env.FAL_KEY || process.env.REPLICATE_API_TOKEN)) {
       try {
         generatedResult = await generateDesignWithKontext(
           session.floor_plan_url,
