@@ -8,7 +8,6 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -89,6 +88,9 @@ export default function LoginScreen() {
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState<
+    { type: "success" | "error"; text: string } | null
+  >(null);
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -100,12 +102,18 @@ export default function LoginScreen() {
     defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" },
   });
 
+  function switchMode(tab: "login" | "signup") {
+    setNotice(null);
+    setMode(tab);
+  }
+
   async function handleLogin(data: LoginForm) {
     setLoading(true);
+    setNotice(null);
     try {
       await signIn(data.email, data.password);
     } catch (err: any) {
-      Alert.alert("Sign In Failed", err.message ?? "Something went wrong.");
+      setNotice({ type: "error", text: err.message ?? "Something went wrong." });
     } finally {
       setLoading(false);
     }
@@ -113,18 +121,25 @@ export default function LoginScreen() {
 
   async function handleSignUp(data: SignUpForm) {
     setLoading(true);
+    setNotice(null);
     try {
       const result = await signUp(data.email, data.password, data.fullName);
       if (isAutoConfirmed(result)) {
+        // Auto-confirm mode: session is live, AuthGate redirects to the app.
+        setNotice({ type: "success", text: "Account created — signing you in…" });
         return;
       }
-      Alert.alert(
-        "Check your email",
-        "We sent a confirmation link. Verify your email to continue.",
-        [{ text: "OK", onPress: () => setMode("login") }]
-      );
+      // Email-confirmation mode: confirm inline, then drop the user on the
+      // Sign In tab with their email prefilled so they can log in after verifying.
+      loginForm.setValue("email", data.email);
+      signUpForm.reset();
+      setMode("login");
+      setNotice({
+        type: "success",
+        text: "Account created! Check your email to confirm, then sign in below.",
+      });
     } catch (err: any) {
-      Alert.alert("Sign Up Failed", err.message ?? "Something went wrong.");
+      setNotice({ type: "error", text: err.message ?? "Something went wrong." });
     } finally {
       setLoading(false);
     }
@@ -161,7 +176,7 @@ export default function LoginScreen() {
               {(["login", "signup"] as const).map((tab) => (
                 <TouchableOpacity
                   key={tab}
-                  onPress={() => setMode(tab)}
+                  onPress={() => switchMode(tab)}
                   className={`flex-1 py-2.5 rounded-full items-center ${
                     mode === tab ? "bg-terracotta" : ""
                   }`}
@@ -176,6 +191,36 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+
+            {/* Inline confirmation / error banner (Alert.alert is a no-op on web) */}
+            {notice && (
+              <View
+                style={{
+                  backgroundColor:
+                    notice.type === "success"
+                      ? "rgba(74,222,128,0.12)"
+                      : "rgba(248,113,113,0.12)",
+                  borderColor:
+                    notice.type === "success"
+                      ? "rgba(74,222,128,0.35)"
+                      : "rgba(248,113,113,0.35)",
+                }}
+                className="flex-row items-start gap-2.5 rounded-2xl px-4 py-3 mb-6 border"
+              >
+                <Ionicons
+                  name={notice.type === "success" ? "checkmark-circle" : "alert-circle"}
+                  size={18}
+                  color={notice.type === "success" ? "#4ade80" : "#f87171"}
+                  style={{ marginTop: 1 }}
+                />
+                <Text
+                  className="flex-1 text-sm font-sans leading-relaxed"
+                  style={{ color: notice.type === "success" ? "#4ade80" : "#f87171" }}
+                >
+                  {notice.text}
+                </Text>
+              </View>
+            )}
 
             {/* Sign In form */}
             {mode === "login" && (
