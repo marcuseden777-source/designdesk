@@ -11,7 +11,8 @@ import {
 } from "../hooks/useScrollProgress";
 import { lenisInstance } from "./LenisProvider";
 import { FloatingPanels, useImageTexture } from "./assets";
-import { IconArrowDown } from "./icons";
+import { IconArrowDown, IconArrowRight } from "./icons";
+import { LOGIN_URL } from "./Scene7_CTA";
 
 /**
  * Procedural blueprint — instant fallback drawn on canvas while the
@@ -167,10 +168,17 @@ export function Scene1Overlay() {
         Get <span className="font-medium text-terracotta-soft">20 designs</span>{" "}
         in seconds.
       </p>
+      <a
+        href={LOGIN_URL}
+        className="cta-shine group relative pointer-events-auto mt-10 inline-flex cursor-pointer items-center gap-2 rounded-full bg-terracotta px-9 py-4 font-sans text-base font-semibold text-off-white transition-colors duration-200 hover:bg-terracotta-deep md:text-lg"
+      >
+        Design with us
+        <IconArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
+      </a>
       <button
         type="button"
         onClick={scrollToNext}
-        className="group relative pointer-events-auto mt-12 inline-flex cursor-pointer items-center gap-2 rounded-full border border-off-white/25 px-6 py-3 font-sans text-sm text-off-white/90 transition-colors duration-200 hover:border-terracotta-soft hover:text-terracotta-soft"
+        className="group relative pointer-events-auto mt-5 inline-flex cursor-pointer items-center gap-2 rounded-full border border-off-white/20 px-5 py-2.5 font-sans text-sm text-off-white/70 transition-colors duration-200 hover:border-terracotta-soft hover:text-terracotta-soft"
       >
         See how it works
         <IconArrowDown className="h-4 w-4 transition-transform duration-200 group-hover:translate-y-0.5" />

@@ -46,6 +46,57 @@ html.lenis body {
   animation: slideUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Attention CTA: a bright light streak sweeps across every 3s + a soft glow
+   pulse on the same cadence, to draw the eye to the primary "Design with us"
+   button. */
+@keyframes ctaShine {
+  0% {
+    transform: translateX(-160%) skewX(-20deg);
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  18% {
+    transform: translateX(160%) skewX(-20deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(160%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+@keyframes ctaGlow {
+  0%,
+  100% {
+    box-shadow: 0 10px 28px -6px rgba(217, 139, 106, 0.45);
+  }
+  50% {
+    box-shadow: 0 14px 42px -4px rgba(217, 139, 106, 0.85);
+  }
+}
+
+.cta-shine {
+  position: relative;
+  overflow: hidden;
+  animation: ctaGlow 3s ease-in-out infinite;
+}
+.cta-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.9) 50%,
+    transparent 75%
+  );
+  transform: translateX(-160%) skewX(-20deg);
+  animation: ctaShine 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
 /* Honour reduced-motion: calm the CSS-fallback entrance animations */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -59,5 +110,13 @@ html.lenis body {
   .animate-slide-up {
     animation: none;
     opacity: 1;
+  }
+
+  .cta-shine {
+    animation: none;
+  }
+  .cta-shine::after {
+    animation: none;
+    opacity: 0;
   }
 }

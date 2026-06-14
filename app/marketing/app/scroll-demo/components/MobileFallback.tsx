@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { DASHBOARD_URL } from "./Scene7_CTA";
+import { LOGIN_URL } from "./Scene7_CTA";
 import { IconArrowRight, IconArrowDown } from "./icons";
 
 const CARDS: {
@@ -115,10 +115,10 @@ function FallbackCard({
         </p>
         {card.cta && (
           <a
-            href={DASHBOARD_URL}
-            className="mt-10 inline-flex items-center gap-2 rounded-full bg-terracotta px-8 py-4 font-sans text-base font-semibold text-off-white shadow-lg shadow-terracotta/25"
+            href={LOGIN_URL}
+            className="cta-shine mt-10 inline-flex items-center gap-2 rounded-full bg-terracotta px-8 py-4 font-sans text-base font-semibold text-off-white"
           >
-            Start Designing Free
+            Design with us
             <IconArrowRight className="h-5 w-5" />
           </a>
         )}

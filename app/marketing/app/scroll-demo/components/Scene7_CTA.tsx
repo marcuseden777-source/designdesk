@@ -12,9 +12,13 @@ import {
 import { useImageTextures } from "./assets";
 import { IconArrowRight } from "./icons";
 
-export const DASHBOARD_URL =
-  process.env.NEXT_PUBLIC_DASHBOARD_URL ??
-  "https://interior-design-app-gilt.vercel.app/dashboard";
+// The live product app. Marketing CTAs funnel here (/login handles both new
+// sign-ups and returning users, then lands them on the dashboard).
+export const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://designdesk-iota.vercel.app";
+export const LOGIN_URL = `${APP_URL}/login`;
+/** @deprecated kept for backwards-compat; points at LOGIN_URL now. */
+export const DASHBOARD_URL = LOGIN_URL;
 
 const ROOMS: {
   name: string;
@@ -150,11 +154,11 @@ export function Scene7Overlay() {
         Instantly.
       </p>
       <a
-        href={DASHBOARD_URL}
-        className="group pointer-events-auto mt-8 inline-flex cursor-pointer items-center gap-2 rounded-full bg-terracotta px-8 py-4 font-sans text-base font-semibold text-off-white shadow-lg shadow-terracotta/25 transition-colors duration-200 hover:bg-terracotta-deep"
+        href={LOGIN_URL}
+        className="cta-shine group pointer-events-auto mt-8 inline-flex cursor-pointer items-center gap-2 rounded-full bg-terracotta px-8 py-4 font-sans text-base font-semibold text-off-white transition-colors duration-200 hover:bg-terracotta-deep"
         style={show(0.97)}
       >
-        Start Designing Free
+        Design with us
         <IconArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
       </a>
     </div>

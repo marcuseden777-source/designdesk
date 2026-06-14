@@ -9,7 +9,7 @@ import { Scene3Overlay } from "./components/Scene3_Styles";
 import { Scene4Overlay } from "./components/Scene4_BeforeAfter";
 import { Scene5Overlay } from "./components/Scene5_Quote";
 import { Scene6Overlay } from "./components/Scene6_Workflow";
-import { Scene7Overlay } from "./components/Scene7_CTA";
+import { Scene7Overlay, LOGIN_URL } from "./components/Scene7_CTA";
 import { useDeviceCheck } from "./hooks/useDeviceCheck";
 
 function LoadingSkeleton() {
@@ -78,6 +78,15 @@ export default function ScrollExperience() {
           <p className="font-sans text-xs font-semibold tracking-[0.3em] text-off-white/90 md:text-sm md:tracking-[0.35em]">
             DESIGN<span className="text-terracotta-soft">DESK</span>
           </p>
+        </div>
+        {/* Sign in — fixed top-right, persistent across the scroll */}
+        <div className="fixed right-5 top-4 z-20 md:right-6 md:top-5">
+          <a
+            href={LOGIN_URL}
+            className="pointer-events-auto inline-flex items-center rounded-full border border-off-white/25 bg-ink/40 px-5 py-2 font-sans text-xs font-semibold tracking-wide text-off-white/90 backdrop-blur-sm transition-colors duration-200 hover:border-terracotta-soft hover:text-terracotta-soft md:text-sm"
+          >
+            Sign in
+          </a>
         </div>
         <div
           style={{ position: "relative", zIndex: 10, pointerEvents: "none" }}
