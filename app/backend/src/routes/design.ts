@@ -34,26 +34,41 @@ router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Re
       return;
     }
 
-    // Use ControlNet (layout-preserving) if floor plan URL + Replicate token available
-    // Otherwise fall back to Nvidia text-to-image
+    // Generation strategy: prefer ControlNet (layout-preserving) when a floor
+    // plan URL + Replicate token are present, but ALWAYS fall back to Nvidia
+    // FLUX text-to-image if ControlNet errors (e.g. the Replicate model is
+    // unavailable). Nvidia is the verified path, so a Replicate misconfig must
+    // never take generation down.
+    const nvidiaGenerate = () =>
+      generateDesign(
+        session.floor_plan_analysis,
+        style,
+        selected_rooms,
+        project_type,
+        total_sqft ?? null
+      );
+
     let generatedResult: string;
     if (session.floor_plan_url && process.env.REPLICATE_API_TOKEN) {
-      generatedResult = await generateDesignWithControlNet(
-        session.floor_plan_url,
-        session.floor_plan_analysis,
-        style,
-        selected_rooms,
-        project_type,
-        total_sqft ?? null
-      );
+      try {
+        generatedResult = await generateDesignWithControlNet(
+          session.floor_plan_url,
+          session.floor_plan_analysis,
+          style,
+          selected_rooms,
+          project_type,
+          total_sqft ?? null
+        );
+      } catch (controlNetErr: any) {
+        console.warn(
+          "ControlNet generation failed, falling back to Nvidia FLUX:",
+          controlNetErr?.message
+        );
+        Sentry.captureException(controlNetErr);
+        generatedResult = await nvidiaGenerate();
+      }
     } else {
-      generatedResult = await generateDesign(
-        session.floor_plan_analysis,
-        style,
-        selected_rooms,
-        project_type,
-        total_sqft ?? null
-      );
+      generatedResult = await nvidiaGenerate();
     }
 
     // Decode image from data URI or fetch from URL
@@ -63,15 +78,28 @@ router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Re
       imgBuffer = Buffer.from(base64Data, "base64");
     }
 
-    // Upload priority: S3 → Supabase Storage → data URI fallback
-    let permanentUrl: string;
-    if (process.env.S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID && imgBuffer) {
-      permanentUrl = await uploadBuffer(imgBuffer, "image/jpeg", "generated-designs");
-    } else if (isSupabaseStorageConfigured() && imgBuffer) {
-      permanentUrl = await uploadToSupabaseStorage(imgBuffer, "image/jpeg", "generated-designs");
-    } else {
-      permanentUrl = generatedResult;
+    // Upload priority with graceful fallback: S3 → Supabase Storage → data URI.
+    // Each tier is tried only if configured, and a failure (e.g. placeholder S3
+    // credentials) falls through to the next tier instead of failing the request.
+    const persistDesign = async (buf: Buffer): Promise<string> => {
+      if (process.env.S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID) {
+        try {
+          return await uploadBuffer(buf, "image/jpeg", "generated-designs");
+        } catch (e: any) {
+          console.warn("S3 upload failed, trying Supabase Storage:", e?.message);
+        }
+      }
+      if (isSupabaseStorageConfigured()) {
+        try {
+          return await uploadToSupabaseStorage(buf, "image/jpeg", "generated-designs");
+        } catch (e: any) {
+          console.warn("Supabase Storage upload failed, using data URI:", e?.message);
+        }
+      }
+      return generatedResult; // inline data-URI fallback (already a data: URI)
     }
+
+    const permanentUrl = imgBuffer ? await persistDesign(imgBuffer) : generatedResult;
 
     // Update session
     await supabaseAdmin
