@@ -1,7 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk";
+import Replicate from "replicate";
 import { FloorPlanAnalysis, DesignStyle } from "../types";
 
 const NVIDIA_FLUX_URL = "https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev";
+
+// FLUX Kontext (image-to-image) on Replicate — restyles the uploaded floor plan
+// while preserving its walls/room layout. This is the layout-preserving path;
+// it falls back to Nvidia FLUX text-to-image (below) when unavailable.
+const KONTEXT_MODEL = "black-forest-labs/flux-kontext-dev";
 
 // Claude is the "design brain": it reads the structured floor-plan analysis and
 // authors a vivid, layout-aware image-generation prompt for FLUX. (Anthropic
@@ -21,6 +27,19 @@ Requirements:
 - Walls as thin clean outlines; rooms filled with styled flooring and furnishings.
 - Professional architectural illustration, clean and minimal. No text, no labels, no dimensions, no people, no watermarks.
 - Output ONLY the prompt text: a single paragraph, no preamble, no surrounding quotes, under 150 words.`;
+
+// For FLUX Kontext (image editing): the model receives the actual floor-plan
+// image, so the instruction must tell it to RESTYLE while preserving structure.
+const PROMPT_EDIT_SYSTEM = `You write ONE image-EDIT instruction for FLUX Kontext, which restyles an existing floor-plan image while preserving its structure.
+
+Given the floor-plan analysis and a target design style, write a single instruction telling the model to restyle THIS floor plan in the given style.
+
+Requirements:
+- Begin by insisting it KEEP the exact same walls, room shapes, doors and overall layout — only change the interior styling, flooring, furniture and colours.
+- Furnish each room appropriately for the style (flooring, sofas, rugs, beds, dining sets, kitchen/bath fixtures, plants).
+- Convey the style's mood, colour palette (natural colour NAMES, never hex codes), and materials.
+- Keep it a clean top-down architectural rendering. No text, no labels, no dimensions, no people, no watermarks.
+- Output ONLY the instruction: a single paragraph, no preamble, no surrounding quotes, under 120 words.`;
 
 // Map hex colors to natural language names for the prompt
 // (Nvidia's content filter blocks hex color codes in some contexts)
@@ -187,6 +206,96 @@ export async function generateDesign(
   return `data:image/jpeg;base64,${result.base64}`;
 }
 
-// Layout-preserving generation (Replicate ControlNet) was removed: the model
-// id 404'd in production and Anthropic has no image-gen model to replace it.
-// Generation now runs through Claude-authored prompts → Nvidia FLUX above.
+// ── Layout-preserving generation (FLUX Kontext img2img on Replicate) ─────────
+
+// Claude authors the restyle EDIT instruction; falls back to a template string.
+async function buildKontextInstructionWithClaude(
+  analysis: FloorPlanAnalysis,
+  style: DesignStyle,
+  selectedRooms: string[],
+  projectType: string,
+  totalSqft: number | null
+): Promise<string> {
+  const fallback = `Keep the exact same walls, room shapes, doors and overall layout — only restyle the interior. Convert this floor plan into a ${style.name} interior design: ${style.materials.join(", ")} materials, a palette of ${style.colors.map(hexToName).join(", ")}, with furniture, rugs and fixtures suited to each room. Clean top-down architectural rendering, no text or labels.`;
+  if (!process.env.ANTHROPIC_API_KEY) return fallback;
+  try {
+    const brief = {
+      project_type: projectType,
+      total_sqft: totalSqft ?? analysis.total_estimated_sqft ?? null,
+      layout_type: analysis.layout_type,
+      rooms: analysis.rooms
+        .filter((r) => selectedRooms.includes(r.name))
+        .map((r) => ({ name: sanitizeRoomName(r.name), type: r.type })),
+      style: {
+        name: style.name,
+        mood: style.description,
+        colours: style.colors.map(hexToName),
+        materials: style.materials,
+      },
+    };
+    const res = await anthropic.messages.create({
+      model: PROMPT_MODEL,
+      max_tokens: 350,
+      system: PROMPT_EDIT_SYSTEM,
+      messages: [
+        {
+          role: "user",
+          content: `Floor-plan + style brief (JSON):\n${JSON.stringify(brief)}\n\nWrite the restyle edit instruction.`,
+        },
+      ],
+    });
+    const text = res.content[0]?.type === "text" ? res.content[0].text.trim() : "";
+    return text.length > 0 ? text : fallback;
+  } catch (err: any) {
+    console.warn("Claude Kontext-instruction authoring failed, using template:", err?.message);
+    return fallback;
+  }
+}
+
+/**
+ * Restyle the uploaded floor plan with FLUX Kontext (preserves layout).
+ * Returns a data: URI. Throws if Replicate is unavailable or errors — the
+ * caller falls back to text-to-image generation.
+ */
+export async function generateDesignWithKontext(
+  floorPlanUrl: string,
+  analysis: FloorPlanAnalysis,
+  style: DesignStyle,
+  selectedRooms: string[],
+  projectType: string,
+  totalSqft: number | null
+): Promise<string> {
+  const token = process.env.REPLICATE_API_TOKEN;
+  if (!token) throw new Error("REPLICATE_API_TOKEN is not configured");
+
+  const instruction = await buildKontextInstructionWithClaude(
+    analysis,
+    style,
+    selectedRooms,
+    projectType,
+    totalSqft
+  );
+
+  const replicate = new Replicate({ auth: token });
+  const output = await replicate.run(KONTEXT_MODEL, {
+    input: {
+      prompt: instruction,
+      input_image: floorPlanUrl,
+      aspect_ratio: "match_input_image",
+      output_format: "jpg",
+      num_inference_steps: 30,
+    },
+  });
+
+  // replicate@1.x returns a FileOutput (or array of them); normalise to a URL.
+  const first: any = Array.isArray(output) ? output[0] : output;
+  const imageUrl =
+    first && typeof first.url === "function" ? String(first.url()) : String(first);
+
+  const imgResponse = await fetch(imageUrl);
+  if (!imgResponse.ok) {
+    throw new Error(`Failed to download Kontext image (${imgResponse.status})`);
+  }
+  const buffer = Buffer.from(await imgResponse.arrayBuffer());
+  return `data:image/jpeg;base64,${buffer.toString("base64")}`;
+}

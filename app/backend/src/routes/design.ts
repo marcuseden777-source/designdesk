@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { requireAuth } from "../middleware/auth";
 import { heavyLimiter } from "../middleware/rateLimit";
-import { generateDesign } from "../services/designGenerationService";
+import { generateDesign, generateDesignWithKontext } from "../services/designGenerationService";
 import { uploadBuffer } from "../lib/s3";
 import { uploadToSupabaseStorage, isSupabaseStorageConfigured } from "../lib/supabaseStorage";
 import { supabaseAdmin } from "../lib/supabase";
@@ -34,17 +34,48 @@ router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Re
       return;
     }
 
-    // Generation: Claude (vision/design brain) authors a layout-aware prompt,
-    // Nvidia FLUX renders it. (Anthropic has no image-gen model, so FLUX does
-    // the pixels.) Claude prompt-authoring falls back to a deterministic
-    // template internally, so generation never depends on it succeeding.
-    const generatedResult = await generateDesign(
-      session.floor_plan_analysis,
-      style,
-      selected_rooms,
-      project_type,
-      total_sqft ?? null
-    );
+    // Generation strategy:
+    //  1. LAYOUT-PRESERVING (preferred): FLUX Kontext restyles the actual
+    //     uploaded floor plan, so the output matches the real walls/rooms.
+    //     Needs the floor-plan URL + REPLICATE_API_TOKEN.
+    //  2. FALLBACK: Claude authors a layout-aware prompt → Nvidia FLUX
+    //     text-to-image (style-based, verified). Used when Kontext is
+    //     unavailable or errors, so generation never goes down.
+    let generatedResult: string;
+    let mode: "kontext-layout-preserving" | "flux-text-to-image";
+    if (session.floor_plan_url && process.env.REPLICATE_API_TOKEN) {
+      try {
+        generatedResult = await generateDesignWithKontext(
+          session.floor_plan_url,
+          session.floor_plan_analysis,
+          style,
+          selected_rooms,
+          project_type,
+          total_sqft ?? null
+        );
+        mode = "kontext-layout-preserving";
+      } catch (kontextErr: any) {
+        console.warn("Kontext (layout-preserving) failed, falling back to FLUX text-to-image:", kontextErr?.message);
+        Sentry.captureException(kontextErr);
+        generatedResult = await generateDesign(
+          session.floor_plan_analysis,
+          style,
+          selected_rooms,
+          project_type,
+          total_sqft ?? null
+        );
+        mode = "flux-text-to-image";
+      }
+    } else {
+      generatedResult = await generateDesign(
+        session.floor_plan_analysis,
+        style,
+        selected_rooms,
+        project_type,
+        total_sqft ?? null
+      );
+      mode = "flux-text-to-image";
+    }
 
     // Decode image from data URI or fetch from URL
     let imgBuffer: Buffer | null = null;
@@ -89,7 +120,7 @@ router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Re
       })
       .eq("id", session_id);
 
-    res.json({ design_url: permanentUrl });
+    res.json({ design_url: permanentUrl, mode });
   } catch (err: any) {
     console.error("Design generation error:", err);
     Sentry.captureException(err);
