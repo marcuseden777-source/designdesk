@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { requireAuth } from "../middleware/auth";
 import { heavyLimiter } from "../middleware/rateLimit";
-import { generateDesign, generateDesignWithControlNet } from "../services/designGenerationService";
+import { generateDesign } from "../services/designGenerationService";
 import { uploadBuffer } from "../lib/s3";
 import { uploadToSupabaseStorage, isSupabaseStorageConfigured } from "../lib/supabaseStorage";
 import { supabaseAdmin } from "../lib/supabase";
@@ -34,42 +34,17 @@ router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Re
       return;
     }
 
-    // Generation strategy: prefer ControlNet (layout-preserving) when a floor
-    // plan URL + Replicate token are present, but ALWAYS fall back to Nvidia
-    // FLUX text-to-image if ControlNet errors (e.g. the Replicate model is
-    // unavailable). Nvidia is the verified path, so a Replicate misconfig must
-    // never take generation down.
-    const nvidiaGenerate = () =>
-      generateDesign(
-        session.floor_plan_analysis,
-        style,
-        selected_rooms,
-        project_type,
-        total_sqft ?? null
-      );
-
-    let generatedResult: string;
-    if (session.floor_plan_url && process.env.REPLICATE_API_TOKEN) {
-      try {
-        generatedResult = await generateDesignWithControlNet(
-          session.floor_plan_url,
-          session.floor_plan_analysis,
-          style,
-          selected_rooms,
-          project_type,
-          total_sqft ?? null
-        );
-      } catch (controlNetErr: any) {
-        console.warn(
-          "ControlNet generation failed, falling back to Nvidia FLUX:",
-          controlNetErr?.message
-        );
-        Sentry.captureException(controlNetErr);
-        generatedResult = await nvidiaGenerate();
-      }
-    } else {
-      generatedResult = await nvidiaGenerate();
-    }
+    // Generation: Claude (vision/design brain) authors a layout-aware prompt,
+    // Nvidia FLUX renders it. (Anthropic has no image-gen model, so FLUX does
+    // the pixels.) Claude prompt-authoring falls back to a deterministic
+    // template internally, so generation never depends on it succeeding.
+    const generatedResult = await generateDesign(
+      session.floor_plan_analysis,
+      style,
+      selected_rooms,
+      project_type,
+      total_sqft ?? null
+    );
 
     // Decode image from data URI or fetch from URL
     let imgBuffer: Buffer | null = null;

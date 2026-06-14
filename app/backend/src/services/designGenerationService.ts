@@ -1,7 +1,26 @@
-import Replicate from "replicate";
+import Anthropic from "@anthropic-ai/sdk";
 import { FloorPlanAnalysis, DesignStyle } from "../types";
 
 const NVIDIA_FLUX_URL = "https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev";
+
+// Claude is the "design brain": it reads the structured floor-plan analysis and
+// authors a vivid, layout-aware image-generation prompt for FLUX. (Anthropic
+// models are text-out only — they can't render the image — so FLUX does the
+// pixels while Claude does the art direction.)
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const PROMPT_MODEL = "claude-sonnet-4-6";
+
+const PROMPT_BRAIN_SYSTEM = `You are an art director writing ONE image-generation prompt for an architectural interior-design renderer (FLUX text-to-image).
+
+Given a floor-plan analysis and a target design style, write a single vivid prompt for a top-down (overhead) architectural rendering of THIS specific apartment layout in the given style.
+
+Requirements:
+- Reflect the ACTUAL rooms and their spatial arrangement from the analysis (relative positions / adjacencies) so the render resembles the real layout.
+- Convey the style's mood, colour palette (use natural colour NAMES, never hex codes), and materials.
+- Mention furniture, rugs, and fixtures appropriate to each room and the style.
+- Walls as thin clean outlines; rooms filled with styled flooring and furnishings.
+- Professional architectural illustration, clean and minimal. No text, no labels, no dimensions, no people, no watermarks.
+- Output ONLY the prompt text: a single paragraph, no preamble, no surrounding quotes, under 150 words.`;
 
 // Map hex colors to natural language names for the prompt
 // (Nvidia's content filter blocks hex color codes in some contexts)
@@ -87,6 +106,58 @@ async function callFluxApi(prompt: string): Promise<{ base64: string; filtered: 
   };
 }
 
+// Claude (the design brain) authors a layout-aware FLUX prompt from the
+// structured analysis + style. Returns null on any failure so the caller can
+// fall back to the deterministic template prompt — generation must never depend
+// on this step succeeding.
+async function buildDesignPromptWithClaude(
+  analysis: FloorPlanAnalysis,
+  style: DesignStyle,
+  selectedRooms: string[],
+  projectType: string,
+  totalSqft: number | null
+): Promise<string | null> {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  try {
+    const brief = {
+      project_type: projectType,
+      total_sqft: totalSqft ?? analysis.total_estimated_sqft ?? null,
+      layout_type: analysis.layout_type,
+      rooms: analysis.rooms
+        .filter((r) => selectedRooms.includes(r.name))
+        .map((r) => ({
+          name: sanitizeRoomName(r.name),
+          type: r.type,
+          estimated_sqft: r.estimated_sqft ?? null,
+        })),
+      style: {
+        name: style.name,
+        mood: style.description,
+        colours: style.colors.map(hexToName),
+        materials: style.materials,
+      },
+    };
+
+    const res = await anthropic.messages.create({
+      model: PROMPT_MODEL,
+      max_tokens: 400,
+      system: PROMPT_BRAIN_SYSTEM,
+      messages: [
+        {
+          role: "user",
+          content: `Floor-plan + style brief (JSON):\n${JSON.stringify(brief)}\n\nWrite the image-generation prompt.`,
+        },
+      ],
+    });
+
+    const text = res.content[0]?.type === "text" ? res.content[0].text.trim() : "";
+    return text.length > 0 ? text : null;
+  } catch (err: any) {
+    console.warn("Claude prompt authoring failed, using template prompt:", err?.message);
+    return null;
+  }
+}
+
 export async function generateDesign(
   analysis: FloorPlanAnalysis,
   style: DesignStyle,
@@ -94,13 +165,11 @@ export async function generateDesign(
   projectType: string,
   totalSqft: number | null
 ): Promise<string> {
-  const prompt = buildDesignPrompt(
-    analysis,
-    style,
-    selectedRooms,
-    projectType,
-    totalSqft
-  );
+  // Claude authors the prompt (richer + layout-aware); fall back to the
+  // deterministic template if Claude is unavailable or errors.
+  const prompt =
+    (await buildDesignPromptWithClaude(analysis, style, selectedRooms, projectType, totalSqft)) ??
+    buildDesignPrompt(analysis, style, selectedRooms, projectType, totalSqft);
 
   // First attempt with full prompt
   let result = await callFluxApi(prompt);
@@ -118,56 +187,6 @@ export async function generateDesign(
   return `data:image/jpeg;base64,${result.base64}`;
 }
 
-// ── ControlNet generation (preserves floor plan layout) ──────────────────────
-
-export async function generateDesignWithControlNet(
-  floorPlanUrl: string,
-  analysis: FloorPlanAnalysis,
-  style: DesignStyle,
-  selectedRooms: string[],
-  projectType: string,
-  totalSqft: number | null
-): Promise<string> {
-  const replicateToken = process.env.REPLICATE_API_TOKEN;
-  if (!replicateToken) {
-    throw new Error("REPLICATE_API_TOKEN is not configured. Set it in your environment to enable ControlNet generation.");
-  }
-  const replicate = new Replicate({ auth: replicateToken });
-
-  const roomList = analysis.rooms
-    .filter((r) => selectedRooms.includes(r.name))
-    .map((r) => sanitizeRoomName(r.name))
-    .join(", ");
-
-  const colorNames = style.colors.map(hexToName).join(", ");
-  const sqftNote = totalSqft ? `, ${totalSqft} square feet` : "";
-
-  const prompt = `${style.name} interior design rendering, top-down architectural floor plan view. ${projectType} apartment${sqftNote}. Color palette: ${colorNames}. Materials: ${style.materials.join(", ")}. Mood: ${style.description}. Rooms: ${roomList}. Show furniture, rugs, fixtures in ${style.name} style. Professional architectural illustration, clean and minimal.`;
-
-  const output = await replicate.run("xlabs-ai/flux-controlnet", {
-    input: {
-      prompt,
-      control_image: floorPlanUrl,
-      controlnet_conditioning_scale: 0.75,
-      num_inference_steps: 28,
-      guidance_scale: 3.5,
-    },
-  });
-
-  // Output is typically an array of URLs or a ReadableStream
-  let imageUrl: string;
-  if (Array.isArray(output) && output.length > 0) {
-    imageUrl = String(output[0]);
-  } else if (typeof output === "string") {
-    imageUrl = output;
-  } else {
-    throw new Error("Replicate returned unexpected output format");
-  }
-
-  // Download the image and convert to data URI
-  const imgResponse = await fetch(imageUrl);
-  if (!imgResponse.ok) throw new Error("Failed to download generated image from Replicate");
-  const buffer = Buffer.from(await imgResponse.arrayBuffer());
-
-  return `data:image/jpeg;base64,${buffer.toString("base64")}`;
-}
+// Layout-preserving generation (Replicate ControlNet) was removed: the model
+// id 404'd in production and Anthropic has no image-gen model to replace it.
+// Generation now runs through Claude-authored prompts → Nvidia FLUX above.
