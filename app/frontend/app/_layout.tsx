@@ -17,6 +17,8 @@ import {
   Montserrat_700Bold,
 } from "@expo-google-fonts/montserrat";
 import { supabase } from "@/lib/supabase";
+import { BrandLoader } from "@/components/BrandLoader";
+import { NavigationLoader } from "@/components/NavigationLoader";
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -112,7 +114,18 @@ export default function RootLayout() {
     }
   }, [fontsReady, session]);
 
-  if (!fontsReady) return null;
+  // Branded cold-start: hold the app behind the boot loader until BOTH fonts and
+  // the persisted session have resolved, so the first painted screen is the
+  // correct one (no flash of landing → dashboard) with fonts already loaded.
+  if (!fontsReady || session === undefined) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <BrandLoader variant="boot" caption="Preparing design engine" />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -129,6 +142,7 @@ export default function RootLayout() {
               <Stack.Screen name="(auth)" />
               <Stack.Screen name="(app)" />
             </Stack>
+            <NavigationLoader />
           </View>
         </ErrorBoundary>
       </SafeAreaProvider>
