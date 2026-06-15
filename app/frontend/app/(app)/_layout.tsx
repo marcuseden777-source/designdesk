@@ -7,7 +7,10 @@ export default function AppLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: "#fdfcf8" },
+          // Ink card background (NOT white) so dark screens don't flash white
+          // mid-transition — matches the root layout's anti-flash setting.
+          contentStyle: { backgroundColor: "#161310" },
+          animation: "fade",
         }}
       />
     </QuoteProvider>
