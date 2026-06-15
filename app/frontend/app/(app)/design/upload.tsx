@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   View, Text, TouchableOpacity, ScrollView, ActivityIndicator,
-  Alert, Image, TextInput, KeyboardAvoidingView, Platform, Dimensions,
+  Alert, Image, TextInput, KeyboardAvoidingView, Platform, useWindowDimensions,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -104,8 +104,6 @@ const CONFIDENCE_STYLE = {
   low:    { chip: "bg-red-50 border border-red-200",         text: "text-red-700",    icon: "warning"              as const, label: "Low — review carefully" },
 };
 
-const IMG_SIZE = Dimensions.get("window").width - 40;
-
 type Step = "upload" | "analyzing" | "confirm" | "style" | "generating" | "result";
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
@@ -113,6 +111,13 @@ type Step = "upload" | "analyzing" | "confirm" | "style" | "generating" | "resul
 export default function DesignUploadScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // Resize-aware sizing. Caps content to a centred column on web so the square
+  // render and style cards never blow up to full desktop width (replaces a
+  // frozen module-level Dimensions read that left the render oversized / off-screen).
+  const { width: winWidth } = useWindowDimensions();
+  const COLUMN = Math.min(winWidth, 480);
+  const IMG_SIZE = COLUMN - 40;
+  const styleCardWidth = (COLUMN - 52) / 2;
 
   const [step, setStep]                   = useState<Step>("upload");
   const [imageUri, setImageUri]           = useState<string | null>(null);
@@ -297,7 +302,7 @@ export default function DesignUploadScreen() {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
             <TouchableOpacity onPress={pickFromLibrary} activeOpacity={0.8} className="mx-5 mt-3 mb-4">
               {imageUri ? (
-                <View className="rounded-2xl overflow-hidden border-2 border-terracotta">
+                <View className="self-center rounded-2xl overflow-hidden border-2 border-terracotta" style={{ width: IMG_SIZE }}>
                   <Image source={{ uri: imageUri }} style={{ width: IMG_SIZE, height: IMG_SIZE }} resizeMode="cover" />
                   <View className="absolute bottom-3 right-3 bg-charcoal/60 rounded-xl px-3 py-1.5 flex-row items-center gap-1.5">
                     <Ionicons name="swap-horizontal" size={14} color="#fdfcf8" />
@@ -503,7 +508,7 @@ export default function DesignUploadScreen() {
                   <TouchableOpacity
                     key={style.id}
                     onPress={() => setSelectedStyle(style)}
-                    style={{ width: (Dimensions.get("window").width - 52) / 2 }}
+                    style={{ width: styleCardWidth }}
                     className={`rounded-2xl border p-4 ${isSelected ? "border-terracotta bg-terracotta/10" : "border-off-white/12 bg-off-white/[0.06]"}`}
                     activeOpacity={0.75}
                   >
@@ -549,9 +554,10 @@ export default function DesignUploadScreen() {
       {step === "result" && designUrl && (
         <>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 140 }}>
-            <View className="mx-5 mt-2 mb-4 rounded-2xl overflow-hidden border border-terracotta/40">
-              <Image source={{ uri: designUrl }} style={{ width: IMG_SIZE, height: IMG_SIZE }} resizeMode="cover" />
-            </View>
+            <View className="w-full self-center" style={{ maxWidth: 480 }}>
+              <View className="mt-2 mb-4 self-center rounded-2xl overflow-hidden border border-terracotta/40" style={{ width: IMG_SIZE }}>
+                <Image source={{ uri: designUrl }} style={{ width: IMG_SIZE, height: IMG_SIZE }} resizeMode="cover" />
+              </View>
 
             <View className="mx-5 mb-4 flex-row items-center gap-2">
               <View className="flex-row gap-1">
@@ -581,9 +587,11 @@ export default function DesignUploadScreen() {
                 </View>
               </View>
             )}
+            </View>
           </ScrollView>
 
-          <View className="absolute bottom-0 left-0 right-0 px-5 pt-4 bg-ink/80 border-t border-off-white/10 gap-3" style={{ paddingBottom: insets.bottom + 20 }}>
+          <View className="absolute bottom-0 left-0 right-0 px-5 pt-4 bg-ink/80 border-t border-off-white/10" style={{ paddingBottom: insets.bottom + 20 }}>
+            <View className="w-full self-center gap-3" style={{ maxWidth: 480 }}>
             <TouchableOpacity
               onPress={handleQuoteWithAI}
               className="bg-terracotta py-4 rounded-xl items-center flex-row justify-center gap-2"
@@ -607,6 +615,7 @@ export default function DesignUploadScreen() {
               >
                 <Text className="text-off-white font-sans">Different Style</Text>
               </TouchableOpacity>
+            </View>
             </View>
           </View>
         </>
