@@ -95,6 +95,9 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+
+  // Billing — current tier, this-month usage, plans + credit packs for the paywall
+  getBilling: () => request<BillingResponse>("/api/billing/me"),
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -183,4 +186,48 @@ export interface GenerateDesignPayload {
   selected_rooms: string[];
   project_type: string;
   total_sqft: number | null;
+}
+
+// ─── Billing ────────────────────────────────────────────────────────────────
+
+export type BillingTier = "free" | "pro" | "studio";
+
+export interface BillingEntitlement {
+  tier: BillingTier;
+  status: string;
+  period: string;
+  rendersUsed: number;
+  quotesUsed: number;
+  includedRenders: number;
+  rendersRemaining: number;
+  credits: number;
+  canGenerate: boolean;
+}
+
+export interface BillingPlan {
+  id: BillingTier;
+  name: string;
+  priceMonthly: number;
+  priceAnnual: number;
+  includedRenders: number;
+  overagePerRender: number | null;
+  quotesPerMonth: number | null;
+  watermark: boolean;
+  canDownloadExports: boolean;
+  features: string[];
+}
+
+export interface BillingCreditPack {
+  id: string;
+  renders: number;
+  priceSGD: number;
+  perRender: number;
+}
+
+export interface BillingResponse {
+  entitlement: BillingEntitlement;
+  plan: BillingPlan;
+  plans: BillingPlan[];
+  creditPacks: BillingCreditPack[];
+  renderCogsSgd: number;
 }

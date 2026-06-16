@@ -16,6 +16,8 @@ import { generatePDF } from "../services/pdfService";
 import { generateDocx } from "../services/docxService";
 import { CreateQuotationSchema } from "../lib/schemas";
 import { Sentry } from "../lib/sentry";
+import { requireQuoteCredit, requireDownloadEntitlement } from "../middleware/entitlement";
+import { recordQuote } from "../services/entitlementService";
 
 const router = Router();
 
@@ -42,7 +44,7 @@ router.get("/", requireAuth, async (req: Request, res: Response): Promise<void> 
 });
 
 // POST /api/quotation — create a new quotation draft
-router.post("/", requireAuth, async (req: Request, res: Response): Promise<void> => {
+router.post("/", requireAuth, requireQuoteCredit, async (req: Request, res: Response): Promise<void> => {
   const parsed = CreateQuotationSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.errors.map((e) => e.message).join(", ") });
@@ -61,6 +63,7 @@ router.post("/", requireAuth, async (req: Request, res: Response): Promise<void>
       line_items,
       design_session_id,
     });
+    await recordQuote(req.userId);
     res.status(201).json(quotation);
   } catch (err: any) {
     Sentry.captureException(err);
@@ -127,7 +130,7 @@ router.patch("/:id/status", requireAuth, async (req: Request, res: Response): Pr
 });
 
 // GET /api/quotation/:id/pdf — export as PDF
-router.get("/:id/pdf", heavyLimiter, requireAuth, async (req: Request, res: Response): Promise<void> => {
+router.get("/:id/pdf", heavyLimiter, requireAuth, requireDownloadEntitlement, async (req: Request, res: Response): Promise<void> => {
   try {
     const quotation = await getQuotation(req.params.id as string, req.userId);
     const pdfBuffer = await generatePDF(quotation);
@@ -145,7 +148,7 @@ router.get("/:id/pdf", heavyLimiter, requireAuth, async (req: Request, res: Resp
 });
 
 // GET /api/quotation/:id/docx — export as an editable Word document
-router.get("/:id/docx", heavyLimiter, requireAuth, async (req: Request, res: Response): Promise<void> => {
+router.get("/:id/docx", heavyLimiter, requireAuth, requireDownloadEntitlement, async (req: Request, res: Response): Promise<void> => {
   try {
     const quotation = await getQuotation(req.params.id as string, req.userId);
     const buffer = await generateDocx(quotation);

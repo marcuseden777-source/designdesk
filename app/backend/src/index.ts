@@ -13,6 +13,7 @@ import { generalLimiter } from "./middleware/rateLimit";
 import floorPlanRoutes from "./routes/floorPlan";
 import designRoutes from "./routes/design";
 import quotationRoutes from "./routes/quotation";
+import billingRoutes from "./routes/billing";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -54,6 +55,7 @@ app.use(generalLimiter);
 app.use("/api/floor-plan", floorPlanRoutes);
 app.use("/api/design", designRoutes);
 app.use("/api/quotation", quotationRoutes);
+app.use("/api/billing", billingRoutes);
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => res.json({ status: "ok", ts: new Date().toISOString() }));

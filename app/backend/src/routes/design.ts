@@ -7,11 +7,13 @@ import { uploadToSupabaseStorage, isSupabaseStorageConfigured } from "../lib/sup
 import { supabaseAdmin } from "../lib/supabase";
 import { GenerateDesignSchema } from "../lib/schemas";
 import { Sentry } from "../lib/sentry";
+import { requireGenerationCredit } from "../middleware/entitlement";
+import { recordGeneration } from "../services/entitlementService";
 
 const router = Router();
 
 // POST /api/design/generate
-router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Response): Promise<void> => {
+router.post("/generate", heavyLimiter, requireAuth, requireGenerationCredit, async (req: Request, res: Response): Promise<void> => {
   const parsed = GenerateDesignSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.errors.map((e) => e.message).join(", ") });
@@ -121,6 +123,9 @@ router.post("/generate", heavyLimiter, requireAuth, async (req: Request, res: Re
         status: "generated",
       })
       .eq("id", session_id);
+
+    // Meter this render against the designer's plan (best-effort, never blocks).
+    await recordGeneration(req.userId);
 
     res.json({ design_url: permanentUrl, mode, ...(fallbackReason ? { fallback_reason: fallbackReason } : {}) });
   } catch (err: any) {
