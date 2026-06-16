@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import { View, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Linking } from "react-native";
 import { Text } from "@/components/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -65,6 +65,20 @@ const CREDIT_PACKS = [
   { id: "pack_60", renders: 60, price: "S$210", each: "S$3.50" },
 ];
 
+// ── Interim manual checkout ──────────────────────────────────────────────────
+// While the payment merchant is being finalised, "Upgrade" / "Buy" open a
+// pre-filled WhatsApp chat with the DesignDesk team to arrange the subscription.
+const WHATSAPP_NUMBER = "6593222332"; // +65 9322 2332
+const WHATSAPP_DISPLAY = "+65 9322 2332";
+const MOVARA_URL = "https://movarasolutions.com";
+
+function openWhatsApp(message: string) {
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  Linking.openURL(url).catch(() =>
+    Alert.alert("Couldn't open WhatsApp", `Message our team at ${WHATSAPP_DISPLAY} to set up your subscription.`)
+  );
+}
+
 export default function SubscriptionScreen() {
   const router = useRouter();
   const { designer } = useDashboardData();
@@ -89,17 +103,20 @@ export default function SubscriptionScreen() {
 
   function handleUpgrade(tierId: string) {
     if (tierId === currentTier) return;
-    Alert.alert(
-      "Upgrade coming soon",
-      "Secure checkout is being finalised. You'll be able to upgrade in-app shortly.",
-      [{ text: "OK" }]
+    const tier = TIERS.find((t) => t.id === tierId);
+    if (!tier) return;
+    openWhatsApp(
+      `Hi DesignDesk team! I'd like to subscribe to the ${tier.name} plan (${tier.price}${tier.period}).\n\n` +
+        `I understand DesignDesk is currently in testing while you improve it. ` +
+        `Please set up my official account subscription and let me know when we go live.`
     );
   }
 
-  function handleBuyPack() {
-    Alert.alert("Render packs coming soon", "Top-up render packs will be purchasable here shortly.", [
-      { text: "OK" },
-    ]);
+  function handleBuyPack(pack: { renders: number; price: string }) {
+    openWhatsApp(
+      `Hi DesignDesk team! I'd like to buy the ${pack.renders}-render top-up pack (${pack.price}).\n\n` +
+        `I understand DesignDesk is currently in testing. Please confirm my order and let me know when we go live.`
+    );
   }
 
   const ent = billing?.entitlement;
@@ -155,6 +172,20 @@ export default function SubscriptionScreen() {
               <Text className="text-terracotta-soft text-xs font-sans-semibold">+{ent.credits} credits</Text>
             ) : null}
           </View>
+        </View>
+
+        {/* ── Testing notice ── */}
+        <View className="mb-5 rounded-2xl p-4 bg-terracotta/10 border border-terracotta/30">
+          <View className="flex-row items-center gap-2 mb-1.5">
+            <Ionicons name="flask-outline" size={16} color="#d98b6a" />
+            <Text className="text-terracotta-soft text-xs font-sans-semibold tracking-wide uppercase">
+              Early access · in testing
+            </Text>
+          </View>
+          <Text className="text-off-white/70 text-xs font-sans leading-relaxed">
+            We're refining DesignDesk with our first designers. To subscribe, pick a plan and message
+            us on WhatsApp — our team sets up your official account and confirms your go-live date.
+          </Text>
         </View>
 
         {/* ── Plans ── */}
@@ -234,7 +265,7 @@ export default function SubscriptionScreen() {
           {CREDIT_PACKS.map((pack) => (
             <TouchableOpacity
               key={pack.id}
-              onPress={handleBuyPack}
+              onPress={() => handleBuyPack(pack)}
               activeOpacity={0.8}
               className="flex-1 rounded-2xl p-3 bg-off-white/[0.06] border border-off-white/12 items-center"
             >
@@ -246,13 +277,46 @@ export default function SubscriptionScreen() {
           ))}
         </View>
 
+        {/* ── Trust & support ── */}
+        <View className="rounded-2xl p-4 bg-off-white/[0.06] border border-off-white/12 mb-4">
+          <View className="flex-row items-center gap-2 mb-3">
+            <Ionicons name="shield-checkmark-outline" size={18} color="#d98b6a" />
+            <Text className="text-off-white font-sans-semibold text-sm">Trusted & supported</Text>
+          </View>
+          {[
+            { icon: "lock-closed-outline", label: "Your designs & quotes stay private to your account" },
+            { icon: "chatbubbles-outline", label: "Real humans on WhatsApp — usually reply within the day" },
+            { icon: "refresh-outline", label: "No lock-in while we're in testing — cancel anytime" },
+          ].map((row) => (
+            <View key={row.label} className="flex-row items-center gap-2.5 mb-2">
+              <Ionicons name={row.icon as any} size={15} color="rgba(253,252,248,0.55)" />
+              <Text className="text-off-white/70 text-xs flex-1 font-sans">{row.label}</Text>
+            </View>
+          ))}
+          <TouchableOpacity
+            onPress={() => openWhatsApp("Hi DesignDesk team! I have a question about the plans.")}
+            activeOpacity={0.8}
+            className="mt-2 py-3 rounded-full items-center flex-row justify-center gap-2 bg-off-white/10 border border-off-white/15"
+          >
+            <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
+            <Text className="text-off-white font-sans-semibold text-sm">Chat with support · {WHATSAPP_DISPLAY}</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Footer note */}
         <View className="items-center mt-1 px-4">
           <Text className="text-off-white/40 text-xs text-center leading-relaxed">
-            Each AI render is one billable photo. Plans include a monthly render allowance;
-            extra renders are charged as overage or from a top-up pack.{"\n"}
-            Prices in SGD, excl. GST. Annual billing saves ~2 months.
+            Each AI render is one billable photo. Prices in SGD, excl. GST.{"\n"}
+            Subscriptions are arranged with our team while we finalise secure payments.
           </Text>
+          <TouchableOpacity
+            onPress={() => Linking.openURL(MOVARA_URL).catch(() => {})}
+            activeOpacity={0.7}
+            className="mt-3 flex-row items-center gap-1.5"
+          >
+            <Text className="text-off-white/35 text-xs">Powered by</Text>
+            <Text className="text-terracotta-soft text-xs font-sans-semibold">MovaraSolutions</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
