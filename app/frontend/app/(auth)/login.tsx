@@ -8,6 +8,7 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,6 +17,16 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn, signUp, isAutoConfirmed } from "@/lib/auth";
 import { AppBackdrop } from "@/components/AppBackdrop";
+
+// Temporary sign-up lock — set to false to re-open public sign-ups.
+const SIGNUP_LOCKED: boolean = true;
+const ACCESS_WHATSAPP =
+  "https://wa.me/6593222332?text=" +
+  encodeURIComponent("Hi! I'd like to request access to DesignDesk.");
+const ACCESS_PHONE = "tel:+6593222332";
+const ACCESS_EMAIL =
+  "mailto:movarasolution@gmail.com?subject=" +
+  encodeURIComponent("DesignDesk access request");
 
 // ─── Validation schemas ───────────────────────────────────────────────────────
 
@@ -282,8 +293,58 @@ export default function LoginScreen() {
               </View>
             )}
 
-            {/* Sign Up form */}
+            {/* Sign Up — temporarily locked behind request-access (flip SIGNUP_LOCKED to re-open) */}
             {mode === "signup" && (
+              SIGNUP_LOCKED ? (
+                <View>
+                  <View className="items-center mb-6">
+                    <View className="w-14 h-14 bg-terracotta/15 border border-terracotta/30 rounded-2xl items-center justify-center mb-4">
+                      <Ionicons name="lock-closed-outline" size={26} color="#d98b6a" />
+                    </View>
+                    <Text className="text-off-white text-xl font-serif mb-2 text-center">
+                      Ask for access
+                    </Text>
+                    <Text className="text-off-white/55 text-sm font-sans text-center leading-relaxed">
+                      Sign-ups are invite-only while we're in early access. Request access from our
+                      team and we'll get you set up.
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL(ACCESS_WHATSAPP).catch(() => {})}
+                    className="bg-terracotta rounded-full py-4 items-center flex-row justify-center gap-2 mb-3"
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="logo-whatsapp" size={18} color="#fdfcf8" />
+                    <Text className="text-off-white font-sans-bold text-base">
+                      Request access on WhatsApp
+                    </Text>
+                  </TouchableOpacity>
+
+                  <View className="flex-row gap-3">
+                    <TouchableOpacity
+                      onPress={() => Linking.openURL(ACCESS_PHONE).catch(() => {})}
+                      className="flex-1 bg-off-white/10 border border-off-white/15 rounded-full py-3.5 items-center flex-row justify-center gap-2"
+                      activeOpacity={0.85}
+                    >
+                      <Ionicons name="call-outline" size={16} color="#d98b6a" />
+                      <Text className="text-off-white font-sans-semibold text-sm">+65 9322 2332</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => Linking.openURL(ACCESS_EMAIL).catch(() => {})}
+                      className="flex-1 bg-off-white/10 border border-off-white/15 rounded-full py-3.5 items-center flex-row justify-center gap-2"
+                      activeOpacity={0.85}
+                    >
+                      <Ionicons name="mail-outline" size={16} color="#d98b6a" />
+                      <Text className="text-off-white font-sans-semibold text-sm">Email us</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text className="text-off-white/40 text-xs text-center mt-5 font-sans">
+                    movarasolution@gmail.com · Already have an account? Switch to Sign In above.
+                  </Text>
+                </View>
+              ) : (
               <View>
                 <Controller
                   control={signUpForm.control}
@@ -368,6 +429,7 @@ export default function LoginScreen() {
                   <Text className="text-terracotta">Privacy Policy</Text>.
                 </Text>
               </View>
+              )
             )}
           </View>
         </ScrollView>
