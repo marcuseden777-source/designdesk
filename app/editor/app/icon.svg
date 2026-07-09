@@ -1,0 +1,10 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="7" fill="#171717"/>
+  <!-- simple floor-plan glyph: outer room, one interior wall, a door gap -->
+  <g stroke="#fafafa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <rect x="6.5" y="6.5" width="19" height="19" rx="1.5"/>
+    <path d="M16 6.5 V14"/>
+    <path d="M16 18 V25.5"/>
+    <path d="M16 25.5 H25.5 V16 H19"/>
+  </g>
+</svg>
