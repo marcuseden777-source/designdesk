@@ -73,6 +73,7 @@ export const api = {
 
   // Design sessions
   listDesignSessions: () => request<any[]>("/api/floor-plan"),
+  getDesignSession: (id: string) => request<any>(`/api/floor-plan/session/${id}`),
 
   // Floor plan
   analyzeFloorPlan: async (formData: FormData) => {

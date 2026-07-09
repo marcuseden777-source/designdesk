@@ -5,6 +5,7 @@ import { heavyLimiter } from "../middleware/rateLimit";
 import { analyzeFloorPlan } from "../services/floorPlanService";
 import { supabaseAdmin } from "../lib/supabase";
 import { Sentry } from "../lib/sentry";
+import { FromEditorSchema } from "../lib/schemas";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } }); // 20MB max
@@ -71,6 +72,56 @@ router.post(
     }
   }
 );
+
+// POST /api/floor-plan/from-editor
+// Accepts a designer-built layout from the 3D editor (top-down PNG + exact-area
+// FloorPlanAnalysis) and persists a design_sessions row, so the existing
+// /api/design/generate + quotation pipeline runs unchanged off it.
+router.post("/from-editor", requireAuth, async (req: Request, res: Response): Promise<void> => {
+  const parsed = FromEditorSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.errors.map((e) => e.message).join(", ") });
+    return;
+  }
+  const { analysis, image_base64, project_type, total_sqft } = parsed.data;
+
+  try {
+    // 1. Decode the top-down PNG (accepts a data: URL or raw base64) and store it.
+    const b64 = image_base64.includes(",") ? image_base64.split(",")[1] : image_base64;
+    const buffer = Buffer.from(b64, "base64");
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.png`;
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("floor-plans")
+      .upload(fileName, buffer, { contentType: "image/png", upsert: false });
+    if (uploadError) throw uploadError;
+    const {
+      data: { publicUrl: floorPlanUrl },
+    } = supabaseAdmin.storage.from("floor-plans").getPublicUrl(fileName);
+
+    // 2. Persist the session (designer-built layout → high-confidence analysis).
+    const selectedRooms = analysis.rooms.map((r) => r.name);
+    const { data: session, error } = await supabaseAdmin
+      .from("design_sessions")
+      .insert({
+        designer_id: req.userId,
+        floor_plan_url: floorPlanUrl,
+        floor_plan_analysis: analysis,
+        selected_rooms: selectedRooms,
+        project_type: project_type ?? null,
+        total_sqft: total_sqft ?? analysis.total_estimated_sqft ?? null,
+        status: "analysed",
+      })
+      .select()
+      .single();
+    if (error) throw error;
+
+    res.json({ session_id: session.id, floor_plan_url: floorPlanUrl });
+  } catch (err: any) {
+    console.error("from-editor session error:", err);
+    Sentry.captureException(err);
+    res.status(500).json({ error: err.message ?? "Failed to create session from editor" });
+  }
+});
 
 // GET /api/floor-plan/session/:id
 router.get("/session/:id", requireAuth, async (req: Request, res: Response): Promise<void> => {

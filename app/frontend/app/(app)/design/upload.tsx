@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View, Text, TouchableOpacity, ScrollView, ActivityIndicator,
-  Alert, Image, TextInput, KeyboardAvoidingView, Platform, useWindowDimensions,
+  Alert, Image, TextInput, KeyboardAvoidingView, Platform, Linking, useWindowDimensions,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { FloorPlanAnalysis, Room } from "@/types";
 import { api, GenerateDesignPayload } from "@/lib/api";
 import { AppBackdrop } from "@/components/AppBackdrop";
+import { supabase } from "@/lib/supabase";
 
 // ─── Design Styles ────────────────────────────────────────────────────────────
 
@@ -129,6 +130,51 @@ export default function DesignUploadScreen() {
   const [selectedStyle, setSelectedStyle] = useState<DesignStyle | null>(null);
   const [designUrl, setDesignUrl]         = useState<string | null>(null);
   const [statusMsg, setStatusMsg]         = useState("");
+
+  const params = useLocalSearchParams<{ session_id?: string }>();
+
+  // Return handoff from the 3D Layout Studio: ?session_id=… → load that session
+  // (built in the editor, exact rooms + areas) and jump to the review step.
+  useEffect(() => {
+    const incoming = typeof params.session_id === "string" ? params.session_id : undefined;
+    if (!incoming || incoming === sessionId) return;
+    (async () => {
+      try {
+        setStatusMsg("Loading your 3D layout…");
+        setStep("analyzing");
+        const s = await api.getDesignSession(incoming);
+        setSessionId(s.id);
+        setAnalysis(s.floor_plan_analysis);
+        const rooms = (s.selected_rooms?.length
+          ? s.selected_rooms
+          : (s.floor_plan_analysis?.rooms ?? []).map((r: Room) => r.name)) as string[];
+        setSelectedRooms(rooms);
+        if (s.project_type) setProjectType(s.project_type);
+        if (s.total_sqft != null) setTotalSqft(String(s.total_sqft));
+        setStep("confirm");
+      } catch (e: any) {
+        Alert.alert("Couldn't load layout", e?.message ?? "Please try again.");
+        setStep("upload");
+      }
+    })();
+  }, [params.session_id]);
+
+  const EDITOR_URL = process.env.EXPO_PUBLIC_EDITOR_URL ?? "https://designdesk-editor.vercel.app";
+
+  // Web-only: open the 3D Layout Studio with the current session token; it builds
+  // a layout and redirects back here with ?session_id=…
+  async function openEditor() {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) { Alert.alert("Please sign in again to open the studio."); return; }
+      const ret = Platform.OS === "web" ? `${window.location.origin}/design/upload` : "";
+      const url = `${EDITOR_URL}/?token=${encodeURIComponent(token)}${ret ? `&return=${encodeURIComponent(ret)}` : ""}`;
+      Linking.openURL(url);
+    } catch (e: any) {
+      Alert.alert("Couldn't open the 3D studio", e?.message ?? "");
+    }
+  }
 
   function handleBack() {
     if (step === "upload")   { router.back(); return; }
@@ -330,6 +376,24 @@ export default function DesignUploadScreen() {
                 <Text className="text-off-white font-sans text-sm">Camera</Text>
               </TouchableOpacity>
             </View>
+
+            {Platform.OS === "web" && (
+              <View className="px-5 mb-6">
+                <View className="flex-row items-center gap-3 mb-4">
+                  <View className="flex-1 h-px bg-off-white/12" />
+                  <Text className="text-off-white/40 text-xs font-sans">or</Text>
+                  <View className="flex-1 h-px bg-off-white/12" />
+                </View>
+                <TouchableOpacity
+                  onPress={openEditor}
+                  className="flex-row items-center justify-center gap-2 bg-terracotta/12 border border-terracotta/40 rounded-xl py-3.5"
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="cube-outline" size={18} color="#d98b6a" />
+                  <Text className="text-terracotta-soft font-sans-semibold text-sm">Build it in 3D — exact rooms & areas (beta)</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
             <View className="px-5">
               <Text className="text-off-white/50 text-xs font-sans tracking-widest uppercase mb-3">What Claude Vision detects</Text>

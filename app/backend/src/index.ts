@@ -29,6 +29,7 @@ const DEFAULT_ORIGINS = [
   "http://localhost:8081",
   "http://localhost:3001",
   "http://localhost:19006",
+  "http://localhost:3200", // app/editor (3D layout studio) dev server
   "https://designdesk.onrender.com",
 ];
 
