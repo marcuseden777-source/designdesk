@@ -90,6 +90,22 @@ export const api = {
     return res.json();
   },
 
+  // Floor plan → editable geometry (for the 3D Studio import flow). Returns
+  // { session_id, floor_plan_url, analysis, geometry }.
+  extractFloorPlanGeometry: async (formData: FormData) => {
+    const authHeader = await getAuthHeader();
+    const res = await fetch(`${BASE_URL}/api/floor-plan/extract-geometry`, {
+      method: "POST",
+      headers: authHeader,
+      body: formData,
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ?? `HTTP ${res.status}`);
+    }
+    return res.json();
+  },
+
   // Design generation
   generateDesign: (payload: GenerateDesignPayload) =>
     request<{ design_url: string }>("/api/design/generate", {

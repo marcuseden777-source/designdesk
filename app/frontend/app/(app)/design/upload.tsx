@@ -162,17 +162,46 @@ export default function DesignUploadScreen() {
   const EDITOR_URL = process.env.EXPO_PUBLIC_EDITOR_URL ?? "https://designdesk-editor.vercel.app";
 
   // Web-only: open the 3D Layout Studio with the current session token; it builds
-  // a layout and redirects back here with ?session_id=…
-  async function openEditor() {
+  // (or edits) a layout and redirects back here with ?session_id=…
+  // Pass a sessionId to pre-load a generated 3D layout from an uploaded plan.
+  async function openEditor(sessionId?: string) {
     try {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
       if (!token) { Alert.alert("Please sign in again to open the studio."); return; }
       const ret = Platform.OS === "web" ? `${window.location.origin}/design/upload` : "";
-      const url = `${EDITOR_URL}/?token=${encodeURIComponent(token)}${ret ? `&return=${encodeURIComponent(ret)}` : ""}`;
+      const url =
+        `${EDITOR_URL}/?token=${encodeURIComponent(token)}` +
+        (ret ? `&return=${encodeURIComponent(ret)}` : "") +
+        (sessionId ? `&session_id=${encodeURIComponent(sessionId)}` : "");
       Linking.openURL(url);
     } catch (e: any) {
       Alert.alert("Couldn't open the 3D studio", e?.message ?? "");
+    }
+  }
+
+  // "Generate 3D from this plan": extract editable geometry from the uploaded
+  // image, then open the Studio pre-populated with the auto-built 3D layout.
+  // With no image, opens an empty Studio to build from scratch.
+  async function handleBuildIn3D() {
+    if (!imageUri) { openEditor(); return; }
+    setStep("analyzing");
+    setStatusMsg("Reading your floor plan into 3D…");
+    try {
+      const formData = new FormData();
+      if (Platform.OS === "web") {
+        const res = await fetch(imageUri);
+        const blob = await res.blob();
+        formData.append("floor_plan", blob, "floor-plan.jpg");
+      } else {
+        formData.append("floor_plan", { uri: imageUri, type: "image/jpeg", name: "floor-plan.jpg" } as any);
+      }
+      const result = await api.extractFloorPlanGeometry(formData);
+      setStep("upload"); // we're navigating to the Studio; restore this screen behind it
+      await openEditor(result.session_id);
+    } catch (e: any) {
+      Alert.alert("Couldn't build 3D", e?.message ?? "Please try again.");
+      setStep("upload");
     }
   }
 
@@ -385,12 +414,14 @@ export default function DesignUploadScreen() {
                   <View className="flex-1 h-px bg-off-white/12" />
                 </View>
                 <TouchableOpacity
-                  onPress={openEditor}
+                  onPress={handleBuildIn3D}
                   className="flex-row items-center justify-center gap-2 bg-terracotta/12 border border-terracotta/40 rounded-xl py-3.5"
                   activeOpacity={0.8}
                 >
                   <Ionicons name="cube-outline" size={18} color="#d98b6a" />
-                  <Text className="text-terracotta-soft font-sans-semibold text-sm">Build it in 3D — exact rooms & areas (beta)</Text>
+                  <Text className="text-terracotta-soft font-sans-semibold text-sm">
+                    {imageUri ? "Generate 3D from this plan → edit in Studio" : "Build it in 3D from scratch (beta)"}
+                  </Text>
                 </TouchableOpacity>
               </View>
             )}
