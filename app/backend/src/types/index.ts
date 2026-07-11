@@ -31,13 +31,24 @@ export interface GeometryRoom {
   is_wet_area: boolean;
 }
 
+// A structural wall as a centre-line segment in METRES (top-left origin), traced
+// from the drawing. Open-plan areas have no dividing wall segment.
+export interface WallSegment {
+  start: [number, number];
+  end: [number, number];
+  thickness?: number | null;
+}
+
 // Vision-extracted floor-plan geometry. Coordinates are approximate (single-shot
-// vision) — the point is an editable draft, corrected in the 3D Studio.
+// vision) — the point is an editable draft, corrected in the 3D Studio. `walls`
+// are the actual structural walls (so open-plan areas stay open); `rooms` label
+// + size the spaces.
 export interface FloorPlanGeometry {
   units: "meters";
   plan_width_m: number;
   plan_height_m: number;
   scale_source: "dimensions" | "scale_bar" | "estimated";
+  walls: WallSegment[];
   rooms: GeometryRoom[];
   notes: string[];
 }

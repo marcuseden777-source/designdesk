@@ -5,10 +5,10 @@
 // (image orientation). Pascal's floor plane is [x, z] with z as the second axis,
 // so we map y → z directly and recentre the plan on the origin.
 //
-// Walls are DERIVED from room polygon edges (deduped), so corners shared between
-// rooms collapse to one wall and coincident endpoints auto-miter into closed
-// rooms — far more robust than trusting a vision model to emit a consistent wall
-// graph. See the backend GEOMETRY_SYSTEM_PROMPT.
+// Walls: we prefer the extracted STRUCTURAL walls (geometry.walls) — they match
+// the drawing and, crucially, leave open-plan areas open (no invented partitions).
+// If none were extracted we fall back to deriving walls from room polygon edges.
+// See the backend GEOMETRY_SYSTEM_PROMPT.
 "use client";
 
 import {
@@ -27,11 +27,17 @@ export interface GeometryRoom {
   polygon: [number, number][];
   is_wet_area?: boolean;
 }
+export interface WallSeg {
+  start: [number, number];
+  end: [number, number];
+  thickness?: number | null;
+}
 export interface FloorPlanGeometry {
   units?: string;
   plan_width_m?: number;
   plan_height_m?: number;
   scale_source?: string;
+  walls?: WallSeg[];
   rooms: GeometryRoom[];
   notes?: string[];
 }
@@ -81,9 +87,16 @@ export function geometryToSceneGraph(
   );
   if (rooms.length === 0) return null;
 
+  const extractedWalls = (geometry?.walls ?? []).filter(
+    (w) => Array.isArray(w?.start) && Array.isArray(w?.end)
+  );
+
   // Recentre the plan on the origin so it sits inside the default 30×30 site and
-  // the camera frames it. Use the bounding-box centre for stability.
+  // the camera frames it. Use the bounding-box centre of rooms AND walls.
   const allPts: [number, number][] = rooms.flatMap((r) => r.polygon);
+  for (const w of extractedWalls) {
+    allPts.push(w.start as [number, number], w.end as [number, number]);
+  }
   const xs = allPts.map((p) => p[0]);
   const ys = allPts.map((p) => p[1]);
   const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
@@ -117,20 +130,31 @@ export function geometryToSceneGraph(
     childIds.push(zone.id, slab.id);
   }
 
-  // Walls: one per unique room-polygon edge (shared edges collapse to one).
+  // Walls. Prefer the extracted structural walls (they match the drawing and keep
+  // open-plan areas open); fall back to deriving from room edges if none exist.
   const seen = new Set<string>();
-  for (const room of rooms) {
-    const ring = room.polygon.map(toXZ);
-    for (let i = 0; i < ring.length; i++) {
-      const a = ring[i];
-      const b = ring[(i + 1) % ring.length];
-      if (a[0] === b[0] && a[1] === b[1]) continue; // zero-length
-      const key = edgeKey(a, b);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      const wall: any = WallNode.parse({ start: a, end: b, parentId: level.id });
-      nodes[wall.id] = wall;
-      childIds.push(wall.id);
+  const addWall = (a: [number, number], b: [number, number], thickness?: number | null) => {
+    if (a[0] === b[0] && a[1] === b[1]) return; // zero-length
+    const key = edgeKey(a, b);
+    if (seen.has(key)) return;
+    seen.add(key);
+    const props: any = { start: a, end: b, parentId: level.id };
+    if (thickness && thickness > 0) props.thickness = thickness;
+    const wall: any = WallNode.parse(props);
+    nodes[wall.id] = wall;
+    childIds.push(wall.id);
+  };
+
+  if (extractedWalls.length > 0) {
+    for (const w of extractedWalls) {
+      addWall(toXZ(w.start as [number, number]), toXZ(w.end as [number, number]), w.thickness ?? undefined);
+    }
+  } else {
+    for (const room of rooms) {
+      const ring = room.polygon.map(toXZ);
+      for (let i = 0; i < ring.length; i++) {
+        addWall(ring[i], ring[(i + 1) % ring.length]);
+      }
     }
   }
 

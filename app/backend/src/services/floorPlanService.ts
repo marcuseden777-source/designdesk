@@ -76,57 +76,69 @@ export async function analyzeFloorPlan(
   }
 }
 
-const GEOMETRY_SYSTEM_PROMPT = `You are an expert at reading architectural floor plans and converting them into
-precise 2D vector geometry. Given a floor-plan image, reconstruct each room as a
-metric polygon so it can be rebuilt as an editable 3D model.
+const GEOMETRY_SYSTEM_PROMPT = `You are an expert architect who converts floor-plan images into precise 2D vector geometry for 3D reconstruction. Reproduce the plan FAITHFULLY — the output must match the drawing's real wall positions and room layout, not a simplified approximation.
 
-COORDINATE SYSTEM (follow exactly):
-- Units are METRES. Use ONE consistent scale for the whole plan.
-- Origin (0,0) is the TOP-LEFT of the plan. x increases to the RIGHT, y increases DOWNWARD (image orientation).
-- Every room is a closed polygon: an ordered array of [x, y] vertices in metres. Do NOT repeat the first vertex at the end.
+COORDINATE SYSTEM
+- Units are METRES, one consistent scale for the whole plan.
+- Origin (0,0) = TOP-LEFT of the building's exterior footprint. x increases RIGHT, y increases DOWN (image orientation).
+- Set the scale from the overall dimension labels (e.g. a 40'x30' plan → 12.19m x 9.14m; 1 ft = 0.3048 m). scale_source="dimensions" when labels exist, else "estimated".
 
-SCALE:
-- If printed dimensions or a scale bar are visible, use them and set scale_source to "dimensions" or "scale_bar".
-- Otherwise estimate a realistic scale from typical residential sizes (a single bedroom ≈ 3–4 m per side, a full bathroom ≈ 1.5–2.5 m, interior doors ≈ 0.8–0.9 m wide) and set scale_source to "estimated".
-- plan_width_m and plan_height_m are the real-world width and height the whole drawing spans, in metres.
+METHOD — reason step by step BEFORE emitting the JSON:
+1. Read the overall exterior dimensions from the labels; compute plan_width_m and plan_height_m.
+2. Trace the EXTERIOR perimeter wall (the thick black outer outline).
+3. Find every INTERIOR wall — the solid black partition lines drawn INSIDE. Critically: a wall exists ONLY where a solid line is actually drawn. Open-plan areas (e.g. a combined family/dining/kitchen) have NO wall between them — never invent partitions there.
+4. Locate each labelled room/space by where its walls actually are; use its printed dimensions (e.g. 9'-0" x 12'-0") to size it, and place it at its true position in the drawing.
+5. Doorways are gaps in walls — keep walls solid (ignore door openings).
 
-ACCURACY RULES (critical for a clean 3D result):
-- Where two rooms share a wall, they MUST share the exact same coordinates along that shared edge (identical numbers), so the walls line up.
-- Keep walls axis-aligned (horizontal/vertical) unless the plan is clearly angled.
-- Prefer simple rectangles for rectangular rooms. Only use extra vertices for genuinely L-shaped or irregular rooms.
-- Round coordinates to 2 decimal places.
-- Include every enclosed room/space with a label or clear boundary. Ignore furniture, text, and dimension lines.
-
-OUTPUT FORMAT: Return a clean JSON object only. No preamble, no markdown fences.
-
+OUTPUT — a single JSON object of this exact shape (you may reason briefly first, but the JSON object must appear complete and be the last thing you write):
 {
   "units": "meters",
-  "plan_width_m": number,
-  "plan_height_m": number,
+  "plan_width_m": <number>,
+  "plan_height_m": <number>,
   "scale_source": "dimensions | scale_bar | estimated",
-  "rooms": [
-    {
-      "name": "string",
-      "type": "bedroom | living | dining | kitchen | bathroom | utility | outdoor | circulation | other",
-      "polygon": [[x, y], [x, y], ...],
-      "is_wet_area": boolean
-    }
-  ],
-  "notes": ["any assumptions, uncertain areas, or scale caveats"]
+  "walls": [ { "start": [x, y], "end": [x, y] } ],
+  "rooms": [ { "name": "<label>", "type": "bedroom|living|dining|kitchen|bathroom|utility|outdoor|circulation|other", "polygon": [[x,y], ...], "is_wet_area": <bool> } ],
+  "notes": ["assumptions, uncertain areas, scale caveats"]
 }
 
-RULES:
-- Always output valid JSON with no markdown code fences.
-- Never invent rooms that are not present. If the plan is unreadable, return an empty rooms array and explain in notes.
-- Use "other" when a room type is unclear.`;
+RULES
+- "walls" is the STRUCTURE: the full exterior perimeter PLUS only the interior partitions actually drawn. Walls that meet MUST share identical endpoint coordinates so they join.
+- "rooms" is for LABELS + AREA only. A room boundary is NOT necessarily a wall — list open-plan sub-areas (family, dining, kitchen) as separate rooms even though no wall divides them.
+- Match the drawing: correct room proportions from the printed dimensions, correct positions from the layout. Do NOT evenly tile the space.
+- Round all coordinates to 2 decimals.
+- Do not invent rooms or walls. Ignore furniture, fixtures, appliances, text and dimension lines.
+- If the plan is unreadable, return empty walls and rooms arrays and explain in notes.`;
+
+/** Extract the outermost balanced {...} JSON object from mixed prose/fenced text. */
+function extractJsonObject(s: string): string | null {
+  const start = s.indexOf("{");
+  if (start < 0) return null;
+  let depth = 0, inStr = false, esc = false;
+  for (let i = start; i < s.length; i++) {
+    const c = s[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (c === "\\") esc = true;
+      else if (c === '"') inStr = false;
+    } else if (c === '"') inStr = true;
+    else if (c === "{") depth++;
+    else if (c === "}" && --depth === 0) return s.slice(start, i + 1);
+  }
+  return null;
+}
 
 export async function extractFloorPlanGeometry(
   imageBase64: string,
   mimeType: "image/jpeg" | "image/png" | "image/webp" | "image/gif"
 ): Promise<FloorPlanGeometry> {
+  // Opus 4.8 with adaptive thinking: floor-plan → geometry is a spatial-reasoning
+  // task where the model must trace walls and read printed dimensions carefully.
+  // `thinking`/`output_config` aren't in the SDK's param type yet, so cast.
   const response = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 8192, // geometry (polygons per room) is far larger than the semantic analysis
+    model: "claude-opus-4-8",
+    max_tokens: 16000, // wall + room geometry, plus room for reasoning
+    thinking: { type: "adaptive" },
+    output_config: { effort: "high" },
     system: GEOMETRY_SYSTEM_PROMPT,
     messages: [
       {
@@ -138,27 +150,34 @@ export async function extractFloorPlanGeometry(
           },
           {
             type: "text",
-            text: "Reconstruct this floor plan as metric room polygons and return the JSON as instructed.",
+            text: "Reconstruct this floor plan (walls + rooms) as instructed and return the JSON object.",
           },
         ],
       },
     ],
-  });
+  } as any);
 
-  const rawText = response.content[0].type === "text" ? response.content[0].text : "";
-  const text = rawText.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "").trim();
+  // Concatenate text blocks (thinking blocks are separate and skipped).
+  const rawText = (response.content ?? [])
+    .filter((b: any) => b?.type === "text")
+    .map((b: any) => b.text)
+    .join("");
 
+  const jsonStr = extractJsonObject(rawText) ?? rawText;
   let parsed: FloorPlanGeometry;
   try {
-    parsed = JSON.parse(text) as FloorPlanGeometry;
+    parsed = JSON.parse(jsonStr) as FloorPlanGeometry;
   } catch {
     throw new Error(`Claude returned invalid geometry JSON: ${rawText.slice(0, 200)}`);
   }
 
-  // Defensive normalisation — keep only well-formed rooms with a real polygon.
+  // Defensive normalisation.
   parsed.units = "meters";
   parsed.rooms = (parsed.rooms ?? []).filter(
     (r) => Array.isArray(r.polygon) && r.polygon.length >= 3
+  );
+  parsed.walls = (parsed.walls ?? []).filter(
+    (w) => Array.isArray(w?.start) && Array.isArray(w?.end)
   );
   parsed.notes = parsed.notes ?? [];
   return parsed;
