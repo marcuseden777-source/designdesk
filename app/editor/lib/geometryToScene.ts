@@ -72,6 +72,48 @@ function edgeKey(a: [number, number], b: [number, number]): string {
 }
 
 /**
+ * Planarize a wall graph: split every wall at any point where ANOTHER wall's
+ * endpoint lands on its span (a T-junction). Pascal's wall miter/footprint only
+ * joins walls at SHARED endpoints — a raw vision-extracted graph has partitions
+ * meeting a longer wall mid-span, which stalls the renderer. After this, every
+ * junction is a shared endpoint, so walls miter cleanly and render fast.
+ */
+function planarizeWalls(segs: WallSeg[]): WallSeg[] {
+  const TOL2 = 0.02 * 0.02; // 2cm on-segment tolerance
+  const pts: [number, number][] = [];
+  for (const s of segs) pts.push(s.start, s.end);
+  const out: WallSeg[] = [];
+  for (const s of segs) {
+    const [ax, ay] = s.start;
+    const [bx, by] = s.end;
+    const dx = bx - ax;
+    const dy = by - ay;
+    const len2 = dx * dx + dy * dy;
+    if (len2 < 1e-9) continue; // zero-length
+    const cuts = [0, 1];
+    for (const [px, py] of pts) {
+      const t = ((px - ax) * dx + (py - ay) * dy) / len2;
+      if (t <= 1e-4 || t >= 1 - 1e-4) continue; // at/beyond an endpoint
+      const prx = ax + t * dx;
+      const pry = ay + t * dy;
+      if ((px - prx) ** 2 + (py - pry) ** 2 < TOL2) cuts.push(t); // point lies on the span
+    }
+    cuts.sort((a, b) => a - b);
+    for (let i = 0; i < cuts.length - 1; i++) {
+      const t0 = cuts[i];
+      const t1 = cuts[i + 1];
+      if (t1 - t0 < 1e-4) continue; // dedup coincident cuts
+      out.push({
+        start: [round2(ax + t0 * dx), round2(ay + t0 * dy)],
+        end: [round2(ax + t1 * dx), round2(ay + t1 * dy)],
+        thickness: s.thickness,
+      });
+    }
+  }
+  return out;
+}
+
+/**
  * Build a Pascal SceneGraph from extracted geometry. Returns null if there are
  * no usable rooms (the editor then shows its empty default scene).
  *
@@ -145,9 +187,20 @@ export function geometryToSceneGraph(
     childIds.push(wall.id);
   };
 
-  if (extractedWalls.length > 0) {
-    for (const w of extractedWalls) {
-      addWall(toXZ(w.start as [number, number]), toXZ(w.end as [number, number]), w.thickness ?? undefined);
+  // Extracted structural walls are disabled for now: in testing, the open-plan
+  // wall graph (large un-subdivided cells) failed to render where the derived
+  // closed-loop walls rendered reliably under identical conditions — Pascal's
+  // space detection expects walls to close into room cells. Deriving per-room
+  // walls from the (accurate opus) room polygons renders reliably — rooms end up
+  // walled but correctly sized and positioned. planarizeWalls + the extracted
+  // path are kept for when open-plan rendering works upstream; flip to re-enable.
+  const USE_EXTRACTED_WALLS = false;
+  if (USE_EXTRACTED_WALLS && extractedWalls.length > 0) {
+    const planar = planarizeWalls(
+      extractedWalls.map((w) => ({ start: w.start as [number, number], end: w.end as [number, number], thickness: w.thickness }))
+    );
+    for (const w of planar) {
+      addWall(toXZ(w.start), toXZ(w.end), w.thickness ?? undefined);
     }
   } else {
     for (const room of rooms) {

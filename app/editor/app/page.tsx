@@ -20,6 +20,35 @@ function Splash({ label }: { label: string }) {
   );
 }
 
+// The vendored editor gates its loading overlay on the viewer signalling
+// `isViewerSceneReady`, which doesn't re-fire when a full scene is applied
+// programmatically (as our import does) — so the spinner sticks even though the
+// 3D has rendered behind it. Once an imported scene is applied, dismiss the stuck
+// overlay so the user sees (and can Send) the generated layout. Runs for a few
+// seconds to survive React re-renders.
+function dismissSceneLoader() {
+  let ticks = 0;
+  const iv = setInterval(() => {
+    document.querySelectorAll('[class*="pascal-loader"]').forEach((el) => {
+      const overlay = (el.closest(".fixed") ?? el.parentElement) as HTMLElement | null;
+      if (overlay) overlay.style.display = "none";
+    });
+    if (++ticks > 40) clearInterval(iv); // ~8s
+  }, 200);
+}
+
+// Apply a generated scene to the editor. The viewer's entire pipeline (geometry
+// builds, scene-ready signal, drawing) is driven by a requestAnimationFrame
+// loop (frameloop:"never" + FrameLimiter), so with the tab VISIBLE the applied
+// scene builds and draws within a few seconds. In a hidden/occluded tab the
+// browser pauses rAF and the build simply freezes until the tab is shown again —
+// that's expected, not a hang.
+async function applyImportedGraph(graph: unknown): Promise<void> {
+  const { applySceneGraphToEditor } = await import("@pascal-app/editor");
+  applySceneGraphToEditor(graph as any);
+  dismissSceneLoader();
+}
+
 export default function Page() {
   const [token, setToken] = useState("");
   const [returnUrl, setReturnUrl] = useState<string | null>(null);
@@ -50,35 +79,39 @@ export default function Page() {
     if (r) setReturnUrl(r);
     if (t || r || sid) window.history.replaceState({}, "", window.location.pathname);
     setReady(true);
+    // App-first flow (?session_id=): fetch the session's geometry and apply it
+    // shortly after the editor has mounted (post-mount apply is more reliable
+    // than returning it from onLoad, which races the viewer's ready signal).
+    if (sid && t) {
+      (async () => {
+        try {
+          const imp = await fetchSessionGeometry(sid, t);
+          const g = imp ? geometryToSceneGraph(imp.geometry) : null;
+          if (g) window.setTimeout(() => void applyImportedGraph(g), 1600);
+        } catch (e) {
+          console.error("Failed to load floor-plan geometry:", e);
+        }
+      })();
+    }
   }, []);
 
-  // Dev-only: seed a scene from geometry via the console (window.__seed(geo)),
-  // so the converter + rendering can be verified without the backend. Stripped
-  // from production builds by dead-code elimination.
+  // Debug seeder: window.__seed(geo) applies a scene from geometry, for verifying
+  // the converter + rendering without the backend. Available in dev, and in prod
+  // only when the URL carries ?__dbg (a benign client-only affordance — it just
+  // manipulates the local editor scene, no server/security surface).
   useEffect(() => {
-    if (process.env.NODE_ENV === "production") return;
+    if (process.env.NODE_ENV === "production" && !window.location.search.includes("__dbg")) return;
     (window as any).__seed = async (geo: any) => {
       const g = geometryToSceneGraph(geo, geo?.__imageUrl ? { imageUrl: geo.__imageUrl } : {});
-      if (g) {
-        const { applySceneGraphToEditor } = await import("@pascal-app/editor");
-        applySceneGraphToEditor(g);
-      }
+      if (g) await applyImportedGraph(g);
       return g;
     };
   }, []);
 
-  // If launched with ?session_id=, hydrate the scene from that session's geometry.
+  // Mount with an empty scene; the ?session_id= geometry is applied post-mount
+  // (see the params effect) so it doesn't race the viewer's mount/ready cycle.
   async function handleLoad() {
-    const { sessionId, token: tk } = params.current;
-    if (!sessionId || !tk) return null;
-    try {
-      const imported = await fetchSessionGeometry(sessionId, tk);
-      if (!imported) return null;
-      return geometryToSceneGraph(imported.geometry, { imageUrl: imported.floorPlanUrl });
-    } catch (e) {
-      console.error("Failed to load floor-plan geometry:", e);
-      return null;
-    }
+    return null;
   }
 
   // Editor-first: upload a plan → extract geometry → seed the live scene.
@@ -91,15 +124,15 @@ export default function Page() {
     setStatus("Reading floor plan…");
     try {
       const imported = await uploadPlanForGeometry(file, token);
-      const graph = geometryToSceneGraph(imported.geometry, { imageUrl: imported.floorPlanUrl });
+      // Source-image underlay kept off for now — the remote guide texture
+      // suspended the viewer subtree in testing; re-verify before enabling.
+      const graph = geometryToSceneGraph(imported.geometry);
       if (!graph) {
         setStatus("No rooms detected in that image.");
         return;
       }
-      // Client-only: @pascal-app/editor can't SSR, so import it on demand.
-      const { applySceneGraphToEditor } = await import("@pascal-app/editor");
-      applySceneGraphToEditor(graph);
-      setStatus(`✓ Generated ${imported.geometry.rooms.length} rooms — edit, then Send.`);
+      await applyImportedGraph(graph);
+      setStatus(`✓ Generated ${imported.geometry.rooms.length} rooms — review, then Send.`);
     } catch (e: any) {
       setStatus(`✗ ${e.message}`);
     } finally {
