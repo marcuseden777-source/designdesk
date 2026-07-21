@@ -114,13 +114,23 @@ function FallbackCard({
           {card.sub}
         </p>
         {card.cta && (
-          <a
-            href={LOGIN_URL}
-            className="cta-shine mt-10 inline-flex items-center gap-2 rounded-full bg-terracotta px-8 py-4 font-sans text-base font-semibold text-off-white"
-          >
-            Design with us
-            <IconArrowRight className="h-5 w-5" />
-          </a>
+          <>
+            <a
+              href={LOGIN_URL}
+              className="cta-shine mt-10 inline-flex items-center gap-2 rounded-full bg-terracotta px-8 py-4 font-sans text-base font-semibold text-off-white"
+            >
+              Design with us
+              <IconArrowRight className="h-5 w-5" />
+            </a>
+            <a
+              href="https://movarasolutions.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-8 block font-sans text-xs tracking-wide text-stone-dim"
+            >
+              Powered by movarasolutions.com
+            </a>
+          </>
         )}
         {!card.cta && index === 0 && (
           <p className="mt-10 inline-flex items-center gap-1.5 font-sans text-sm text-stone-dim">

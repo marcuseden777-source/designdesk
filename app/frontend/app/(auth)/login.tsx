@@ -432,6 +432,17 @@ export default function LoginScreen() {
               )
             )}
           </View>
+
+          <TouchableOpacity
+            onPress={() => Linking.openURL("https://movarasolutions.com")}
+            activeOpacity={0.7}
+            className="items-center mt-8 mb-2"
+          >
+            <Text className="text-off-white/35 text-xs font-sans">
+              Powered by{" "}
+              <Text className="text-terracotta/80">movarasolutions.com</Text>
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

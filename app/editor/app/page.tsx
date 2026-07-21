@@ -244,6 +244,28 @@ export default function Page() {
         </button>
       </div>
 
+      {/* Bottom-right: agency credit */}
+      <a
+        href="https://movarasolutions.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          position: "absolute",
+          bottom: 12,
+          right: 12,
+          zIndex: 1000,
+          color: "rgba(253,252,248,0.45)",
+          fontSize: 11,
+          textDecoration: "none",
+          background: "rgba(22,19,16,0.6)",
+          border: "1px solid rgba(253,252,248,0.1)",
+          padding: "4px 10px",
+          borderRadius: 999,
+        }}
+      >
+        Powered by movarasolutions.com
+      </a>
+
       {/* Shared status line */}
       {status ? (
         <div

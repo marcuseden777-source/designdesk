@@ -161,6 +161,15 @@ export function Scene7Overlay() {
         Design with us
         <IconArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
       </a>
+      <a
+        href="https://movarasolutions.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="pointer-events-auto mt-10 font-sans text-xs tracking-wide text-stone-dim transition-colors duration-200 hover:text-terracotta-soft"
+        style={show(0.97)}
+      >
+        Powered by movarasolutions.com
+      </a>
     </div>
   );
 }
