@@ -5,7 +5,7 @@ import { heavyLimiter } from "../middleware/rateLimit";
 import { analyzeFloorPlan, extractFloorPlanGeometry } from "../services/floorPlanService";
 import { supabaseAdmin } from "../lib/supabase";
 import { Sentry } from "../lib/sentry";
-import { FromEditorSchema } from "../lib/schemas";
+import { FromEditorSchema, SaveEditorSceneSchema } from "../lib/schemas";
 import { FloorPlanAnalysis, FloorPlanGeometry } from "../types";
 
 const router = Router();
@@ -241,6 +241,55 @@ router.get("/session/:id", requireAuth, async (req: Request, res: Response): Pro
 
   res.json(data);
 });
+
+// PATCH /api/floor-plan/session/:id/scene — autosave the 3D Layout Studio
+// scene graph. Nested in the floor_plan_analysis JSONB (editor_scene key) so it
+// rides with the session and needs no schema migration; reopening the Studio
+// prefers this over the vision-extracted geometry.
+router.patch(
+  "/session/:id/scene",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const parsed = SaveEditorSceneSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.errors.map((e) => e.message).join(", ") });
+      return;
+    }
+    const { scene } = parsed.data;
+    if (Object.keys(scene.nodes).length > 5000) {
+      res.status(413).json({ error: "Scene too large to save" });
+      return;
+    }
+
+    try {
+      // Ownership-checked read-modify-write of the JSONB blob.
+      const { data: row, error: fetchError } = await supabaseAdmin
+        .from("design_sessions")
+        .select("floor_plan_analysis")
+        .eq("id", req.params.id)
+        .eq("designer_id", req.userId)
+        .single();
+      if (fetchError || !row) {
+        res.status(404).json({ error: "Session not found" });
+        return;
+      }
+
+      const merged = { ...(row.floor_plan_analysis ?? {}), editor_scene: scene };
+      const { error } = await supabaseAdmin
+        .from("design_sessions")
+        .update({ floor_plan_analysis: merged })
+        .eq("id", req.params.id)
+        .eq("designer_id", req.userId);
+      if (error) throw error;
+
+      res.json({ ok: true });
+    } catch (err: any) {
+      console.error("save editor scene error:", err);
+      Sentry.captureException(err);
+      res.status(500).json({ error: err.message ?? "Failed to save scene" });
+    }
+  }
+);
 
 // GET /api/floor-plan — List all design sessions for the authenticated user
 router.get("/", requireAuth, async (req: Request, res: Response): Promise<void> => {

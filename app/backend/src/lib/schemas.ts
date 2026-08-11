@@ -68,3 +68,16 @@ export const FromEditorSchema = z.object({
 export type GenerateDesignInput = z.infer<typeof GenerateDesignSchema>;
 export type CreateQuotationInput = z.infer<typeof CreateQuotationSchema>;
 export type FromEditorInput = z.infer<typeof FromEditorSchema>;
+
+// A Pascal 3D Studio scene graph, autosaved per session so a designer can
+// close the Studio and pick the layout back up later. Node shapes are the
+// editor's own concern (its zod schemas re-validate on load) — here we only
+// enforce the envelope and a sane ceiling.
+export const SaveEditorSceneSchema = z.object({
+  scene: z.object({
+    nodes: z.record(z.unknown()),
+    rootNodeIds: z.array(z.string()).min(1, "Scene has no root"),
+  }),
+});
+
+export type SaveEditorSceneInput = z.infer<typeof SaveEditorSceneSchema>;

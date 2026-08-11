@@ -14,6 +14,7 @@
     "@pascal-app/viewer": "^0.9.1",
     "@react-three/drei": "^10",
     "@react-three/fiber": "^9",
+    "@supabase/supabase-js": "^2.112.3",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
