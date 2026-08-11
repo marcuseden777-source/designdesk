@@ -19,6 +19,60 @@ const Editor = dynamic(
   { ssr: false, loading: () => <Splash label="Loading 3D Layout Studio…" /> }
 );
 
+// Furniture/appliance/kitchen/bathroom/outdoor catalog — the editor's v1
+// sidebar only ships site+settings panels; the items catalog is host-supplied
+// (ExtraPanel). Reuses the editor's own ItemsPanel + built-in CATALOG_ITEMS
+// (110 GLB items on Pascal's public CDN). Client-only, like the Editor itself.
+const StudioItemsPanel = dynamic(
+  () =>
+    import("@pascal-app/editor").then((m: any) => {
+      const ItemsPanel = m.ItemsPanel;
+      const items = m.CATALOG_ITEMS;
+      return {
+        default: () => (
+          <ItemsPanel items={items} showSourceFilter={false} showTagFilters={false} />
+        ),
+      };
+    }),
+  { ssr: false, loading: () => null }
+);
+
+// Stable references — the Editor memoizes on prop identity.
+const EXTRA_SIDEBAR_PANELS = [
+  {
+    id: "items",
+    label: "Items",
+    // eslint-disable-next-line @next/next/no-img-element
+    icon: <img src="/icons/couch.png" alt="" style={{ width: 18, height: 18 }} />,
+    component: StudioItemsPanel,
+  },
+];
+
+const SIDEBAR_TOP = (
+  <p
+    style={{
+      margin: 0,
+      fontSize: 12,
+      fontWeight: 700,
+      letterSpacing: "0.22em",
+      color: "rgba(253,252,248,0.9)",
+    }}
+  >
+    DESIGN<span style={{ color: "#d98b6a" }}>DESK</span>
+    <span
+      style={{
+        marginLeft: 8,
+        fontWeight: 500,
+        letterSpacing: "0.06em",
+        fontSize: 10,
+        color: "rgba(253,252,248,0.5)",
+      }}
+    >
+      3D LAYOUT STUDIO
+    </span>
+  </p>
+);
+
 // ─── Shared palette (DesignDesk dark glass) ──────────────────────────────────
 const INK = "rgba(22,19,16,0.92)";
 const INK_SOFT = "rgba(22,19,16,0.72)";
@@ -54,10 +108,28 @@ function dismissSceneLoader() {
 // ready signal, drawing) is rAF-driven, so with the tab visible the scene
 // appears within a few seconds; hidden tabs pause rAF (browser throttling),
 // which is expected, not a hang.
+//
+// The editor also seeds its own default empty scene during initialisation,
+// which is frame-driven and can land AFTER an early programmatic apply,
+// clobbering it (restore-on-boot and ?session_id= reopen both race it). So:
+// verify our root actually survived and re-apply until it sticks (~15s cap).
 async function applyImportedGraph(graph: unknown): Promise<void> {
-  const { applySceneGraphToEditor } = await import("@pascal-app/editor");
-  applySceneGraphToEditor(graph as any);
+  const mod = await import("@pascal-app/editor");
+  const rootId: string | undefined = (graph as any)?.rootNodeIds?.[0];
+  mod.applySceneGraphToEditor(graph as any);
   dismissSceneLoader();
+  if (!rootId) return;
+  let tries = 0;
+  const iv = window.setInterval(() => {
+    tries++;
+    const state = (mod as any).useScene?.getState?.();
+    const survived = Boolean(state?.nodes?.[rootId]);
+    if (!survived) {
+      mod.applySceneGraphToEditor(graph as any);
+      dismissSceneLoader();
+    }
+    if ((survived && tries >= 3) || tries > 30) window.clearInterval(iv);
+  }, 500);
 }
 
 // Draw-from-scratch continuity: unsaved scratch scenes live in localStorage
@@ -375,57 +447,31 @@ export default function Page() {
       {ready ? (
         // @ts-expect-error — Editor ships loose TS source; props verified at runtime.
         <Editor
-          layoutVersion="v2"
+          layoutVersion="v1"
           projectId={sessionId ?? "designdesk-studio"}
           onLoad={handleLoad}
           onSave={handleAutoSave}
           onSaveStatusChange={(s: SaveState) => setSaveState(s)}
+          extraSidebarPanels={EXTRA_SIDEBAR_PANELS}
+          sidebarTop={SIDEBAR_TOP}
         />
       ) : (
         <Splash label="Preparing 3D Layout Studio…" />
       )}
 
-      {/* ── Header bar ── */}
+      {/* ── Action cluster (top-right; branding lives in the sidebar top) ── */}
       <header
         style={{
           position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
+          top: 10,
+          right: 14,
           zIndex: 1100,
           display: "flex",
           alignItems: "center",
           gap: 10,
-          padding: "10px 14px",
-          background: "linear-gradient(rgba(13,10,8,0.85), rgba(13,10,8,0.55) 75%, transparent)",
           pointerEvents: "none",
         }}
       >
-        <p
-          style={{
-            margin: 0,
-            fontSize: 13,
-            fontWeight: 700,
-            letterSpacing: "0.25em",
-            color: "rgba(253,252,248,0.9)",
-          }}
-        >
-          DESIGN<span style={{ color: "#d98b6a" }}>DESK</span>
-          <span
-            style={{
-              marginLeft: 10,
-              fontWeight: 500,
-              letterSpacing: "0.08em",
-              fontSize: 11,
-              color: "rgba(253,252,248,0.5)",
-            }}
-          >
-            3D LAYOUT STUDIO
-          </span>
-        </p>
-
-        <div style={{ flex: 1 }} />
-
         {/* Save state chip */}
         {signedIn && saveLabel[saveState] ? (
           <span
